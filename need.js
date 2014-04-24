@@ -13,7 +13,7 @@
   USAGE:
 
   If your code needs window.library provided by untrusted
-  //cdn1/lib.js and //cdn2/path/lib.js or, as a less desireably
+  //cdn1/lib.js and //cdn2/path/lib.js or, as a less desireable
   fallbacks, at /js/lib.js, use the following code where "xHASHxx" is
   the SHA256 hash of the correct lib.js:
 
