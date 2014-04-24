@@ -47,6 +47,24 @@
     or utf8-encoding starting with the request headers might be correct
     (but those are untested guesses for now).
 
+
+  Open cross-site issue:
+
+    If one of the sources fails to load due to missing or
+    insufficiently permissive Access Control headers, the exception
+    INVALID_ACCESS_ERR is currently not caught (where exactly should
+    it be caught...?). This behavor is contrary to the design goal of
+    reaching increasing reliability through replication and should be
+    altered.
+
+
+  NOTE: Synchronous requests may be impossible from the "main thread."
+        https://developer.mozilla.org/en/docs/Web/API/XMLHttpRequest:
+	Note: Starting with Gecko 30.0 (Firefox 30.0 / Thunderbird
+	30.0 / SeaMonkey 2.27), synchronous requests on the main
+	thread have been deprecated due to the negative effects to the
+	user experience.
+
 */
 
 
@@ -154,6 +172,10 @@ sha256 = (function(){
 
     var fallback = function() {
 	// try again, with the first item of urls (the url that just failed) removed
+
+	// only do the following once,
+	// if any browser triggers more than one error handler (ontimeout, onerrror, or load with non-200 HTTP status code)
+	fallback = function() {};
 	
 	/*dev-only*/	log("Need.js: Failed to load " + urls[0]);
 	
@@ -208,11 +230,21 @@ sha256 = (function(){
     // Hack to pass bytes through unprocessed. Source:
     // http://www.html5rocks.com/en/tutorials/file/xhr2/
     xhr.overrideMimeType('text/plain; charset=x-user-defined');
-    xhr.onreadystatechange = function(e) {
-	if (this.readyState == 4 && this.status == 200) {
-	    process(this.responseText);
+
+    if (callback!==0) {
+	// asynchronous case
+	xhr.onreadystatechange = function(e) {
+	    if (this.readyState == 4) {
+		if (this.status == 200) {
+		    process(this.responseText);
+		} else {
+		    fallback();
+		}
+	    }
 	}
     };
+    xhr.ontimeout = fallback;
+    xhr.onerror = fallback;
     xhr.send();
 
     if (callback===0) {
