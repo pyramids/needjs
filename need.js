@@ -53,7 +53,7 @@
     If one of the sources fails to load due to missing or
     insufficiently permissive Access Control headers, the exception
     INVALID_ACCESS_ERR is currently not caught (where exactly should
-    it be caught...?). This behavor is contrary to the design goal of
+    it be caught...?). This behavior is contrary to the design goal of
     reaching increasing reliability through replication and should be
     altered.
 
