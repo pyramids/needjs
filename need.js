@@ -21,8 +21,8 @@
 
   The first argument (non-present in this example) can optionally hold
   a callback function to be called after the code has been loaded and
-  executed (evaluated using the eval).  Code will not be evaluated
-  unless it has the correct SHA256 hash.
+  executed by injection into the DOM as a script element.  Code will
+  not be evaluated unless it has the correct SHA256 hash.
 
   NOTE:
 
@@ -33,6 +33,20 @@
 
 
   Execute synchronously if 0 is passed instead of a callback function.
+
+
+  Open encoding issue:
+
+    Currently, the script is loaded with unspecified encoding (which
+    should avoid changing the file's hash through re-encoding), but
+    then it utf8-encoded for hash calculation (included in the sha256
+    function), and finally injected without this encoding.
+    
+    This is likely not the desired approach.
+    Either not utf8-encoding at all until injection into the DOM,
+    or utf8-encoding starting with the request headers might be correct
+    (but those are untested guesses for now).
+
 */
 
 
