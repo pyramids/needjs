@@ -143,6 +143,7 @@ sha256 = (function(){
 	// optional parameter callback (which could be a string, function, or 0) is not present
 	hash = urls;
 	urls = callback;
+	callback = "";
     }
 
     xhr=new XMLHttpRequest();
