@@ -1,5 +1,7 @@
 /**
- * @FileOverview Load javascript dependencies with integrity check and fallback to multiple source URLs
+ * @FileOverview Load javascript dependencies with integrity check and fallback to multiple source URLs. Code repository at {@link https://github.com/pyramids/needjs}.
+ * @author Björn Stein
+ * @license MIT-style
  *
  * Goals:
  *  1. Check integrity of files loaded (with a cryptographic hash),
@@ -226,6 +228,10 @@ sha256 = (function(){
 	    fallback();
 	}
     }
+
+    // TODO: The following hack prevents any character encoding to
+    //       affect what exactly we receive, but forcing utf8 instead
+    //       may be more appropriate here.
 
     // Hack to pass bytes through unprocessed. Source:
     // http://www.html5rocks.com/en/tutorials/file/xhr2/
