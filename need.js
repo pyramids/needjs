@@ -219,6 +219,8 @@ needSha256 = (function(){
 
 
 /*window.*/need = (function(callback, urls, hash) {
+    "use strict";
+
 //    if (('object' === typeof callback) && (callback.push)) {
     if (callback.push) {
 	// optional parameter callback (which could be a string,
@@ -230,7 +232,7 @@ needSha256 = (function(){
 	callback = '';
     };
 
-    xhr=new XMLHttpRequest();
+    var xhr=new XMLHttpRequest();
     xhr.open('GET',urls[0],callback!==0);
 
     // try to log to console, if the browser lets us
@@ -248,11 +250,13 @@ needSha256 = (function(){
 	window.need(callback, urls.slice(1), hash);
     };
     
+    // check and evaluate javascript data in binStr (if and only if it has the correct SHA256 hash)
     var process = function(binStr) {
-	// check and evaluate javascript data in binStr (if and only if it has the correct SHA256 hash)
-	for (var i = 0, len = binStr.length; i < len; ++i) {
-	    var byte = binStr.charCodeAt(i) & 0xff;  // byte at offset i
-	};
+	// TODO: Are there common sh256 libraries/APIs we should test
+	//       for and use for possibly improved performance?  
+	//
+	//       Polycrypt, crypto-js, ...: likely not significantly faster
+	//       Web Crypto API: Maybe we should...
 	var actualHash = needSha256(binStr);
 
 	/*dev-only*/ if ('undefined' === typeof hash) {
@@ -345,7 +349,7 @@ needSha256 = (function(){
 
     if (callback!==0) {
 	// asynchronous case
-	xhr.onreadystatechange = function(e) {
+	xhr.onreadystatechange = function() {
 	    if (this.readyState == 4) {
 		if (this.status == 200) {
 		    process(this.responseText);
