@@ -32,9 +32,43 @@
   policy with cdn1 and cdn2 because this library uses a XMLHttpRequest
   to load the scripts.
 
+  CALLBACK FUNCTIONALITY:
 
+  You have many options to introduce callback functions. If the object
+  passed as callback is...
 
-  Execute synchronously if 0 is passed instead of a callback function.
+    0. The integer 0, then all callback-related functionality is
+       disabled in favor of an attempt at synchronous loading. Note
+       that browser support to do so from the main thread appears to
+       be disappearing, so avoid using this outside of a Web Worker
+       context.
+
+    1. A function, then it is called after the script has executed.
+
+    2. A string, then it is injected right after the script, to
+       execute in a global context.
+
+    3. An object, then multiple callback and preprocessing functions
+       are supported:
+
+         callback.cb: a string or a function, is teh regular callback
+
+	 callback.filter: a function with string argument returning a
+	                  string, can be used to pre-process the
+	                  loaded content before execution
+			  
+         callback.el: a string with the element name to be injected
+                      (default: 'script')
+
+         callback.type: a string with the type tag to inject with
+                        (default: 'text/javascript', even if
+                        callback.el is given and not 'script')
+         
+
+    4. An array, then it is assumed that the optional callback
+       parameter was omitted and the first parameter represents the
+       array of source URLs. No callback-related functionality is
+       available in this case.
 
 
   Open encoding issue:
@@ -77,7 +111,7 @@
 The above copyright notice serves as a permissions notice also, and may optionally be included in copies or portions of the work.
 The work is provided “as is”, without warranty or support, express or implied. The author(s) are not liable for any damages, misuse, or other claim, whether from or as a consequence of usage of the given work.
 */
-sha256 = (function(){
+needSha256 = (function(){
   // Eratosthenes seive to find primes up to 311 for magic constants. This is why SHA256 is better than SHA1
   var i=1,
       j,
@@ -159,15 +193,19 @@ sha256 = (function(){
 
 
 /*window.*/need = (function(callback, urls, hash) {
-    if (typeof callback === "object") {
-	// optional parameter callback (which could be a string, function, or 0) is not present
+//    if (('object' === typeof callback) && (callback.push)) {
+    if (callback.push) {
+	// optional parameter callback (which could be a string,
+	// function, or 0) is not present, since our first parameters
+	// appears to be an array (which urls has to be and callback
+	// must not be)
 	hash = urls;
 	urls = callback;
-	callback = "";
+	callback = '';
     }
 
     xhr=new XMLHttpRequest();
-    xhr.open("GET",urls[0],callback!==0);
+    xhr.open('GET',urls[0],callback!==0);
 
     // try to log to console, if the browser lets us
     /*dev-only*/ var log = function(msg) { try { console.log(msg) } catch(e) {} };
@@ -179,7 +217,7 @@ sha256 = (function(){
 	// if any browser triggers more than one error handler (ontimeout, onerrror, or load with non-200 HTTP status code)
 	fallback = function() {};
 	
-	/*dev-only*/	log("Need.js: Failed to load " + urls[0]);
+	/*dev-only*/	log('Need.js: Failed to load ' + urls[0]);
 	
 	window.need(callback, urls.slice(1), hash)
     }
@@ -191,9 +229,9 @@ sha256 = (function(){
 	}
 	var actualHash = sha256(binStr);
 
-	/*dev-only*/ if (typeof hash === 'undefined') {
+	/*dev-only*/ if ('undefined' === typeof hash) {
 	    /*dev-only*/ hash = actualHash;
-	    /*dev-only*/ log('Need.js called without hash; change to:   need('+((callback!==urls)?callback+', ':'')+JSON.stringify(urls)+', "'+actualHash+'")');
+	    /*dev-only*/ log('Need.js called without hash; change to:   need('+((callback!==urls)?callback+', ':'')+JSON.stringify(urls)+', \''+actualHash+'\')');
 	/*dev-only*/ }
 
 	if (hash == actualHash) {
@@ -201,24 +239,66 @@ sha256 = (function(){
 	    //       reliably form the hash, we had to override it but
 	    //       now we need to interpret special charcters as
 	    //       text.
-	    if ((typeof callback === 'function') || (typeof callback === 'string')) {
-		binStr = binStr + "\n;" + callback
-	    }
 
 
 	    // Javascript injection, found at
 	    // http://stackoverflow.com/questions/6432984/adding-script-element-to-the-dom-and-have-the-javascript-run
-	    var s = document.createElement('script');
-	    s.type = 'text/javascript';
+	    var s = document.createElement(callback.el || 'script');
+	    s.type = callback.type || 'text/javascript';
 	    try {
+		if ('object' === typeof callback) {
+		    if (callback.filter) {
+			binStr = callback.filter(binStr);
+		    }
+		    callback = callback.cb || '';
+		}
+		if ('string' === typeof callback) {
+		    binStr = binStr + '\n;' + callback;
+		}
+		if ('function' === typeof callback) {
+		    // Microsoft's recommended pattern to work around the
+		    // lack of an onload event in IE <= 8, found at
+		    // http://msdn.microsoft.com/en-us/library/ie/hh180173(v=vs.85).aspx
+		    if(s.addEventListener) {
+			s.addEventListener('load',callback,false);
+		    } 
+		    // TODO: Test the following load event polyfill
+		    //       (for e.g. IE<=8), and decide if its small
+		    //       benefits are worth the small extra size
+		    /*
+		    else if(s.readyState) {
+			// deviating from Microsoft's recommendation,
+			// check that the readyState has changed all
+			// the way to 'complete' to avoid calling
+			// the callback early if any browser sends
+			// events for other ready states first
+			s.onreadystatechange = function() {
+			    if (s.readyState == 'complete') {
+				callback;
+			    }
+			}
+		    }
+		    */
+		    } else {
+			// fallback to polluting the global namespace
+			// (with a name including the very long and
+			// cryptic hash value, extremely unlikely to
+			// intefere with anything else)
+			var globalCallback = 'needcb' + hash;
+			binStr = binStr + '\n;' + globalCallback+'()';
+			window[globalCallback] = function() {
+			    callback();
+			    delete window[globalCallback];
+			}
+		    }
+		}
 		s.appendChild(document.createTextNode(binStr));
 		document.body.appendChild(s);
 	    } catch (e) {
-		/*dev-only*/ log("Error appending script from" + urls[0]+": "+e);
+		/*dev-only*/ log('Error appending script from' + urls[0]+': '+e);
 	    }
-
 	} else {
-	    /*dev-only*/ log("Need.js: " + urls[0] + " has incorrect hash " + actualHash);
+	    /*dev-only*/ log('Need.js: ' + urls[0] + ' has incorrect hash ' + actualHash);
 
 	    // TODO: Here some logging (to web server?) could be added
 	    //       even for production use.  However, in many cases
