@@ -12,6 +12,16 @@
  */
 
 /*
+ * BIG WARNING:
+ *
+ * Only very minimally tested.
+ * Interface and functionality still subject to change.
+ *
+ * If you want to use this, contribute, to move it into stability!
+ *
+ */
+
+/*
   USAGE:
 
   If your code needs window.library provided by untrusted
@@ -94,6 +104,22 @@
     altered.
 
 
+  Open Namespace Pollution Issue:
+
+    This script creates need(..) and needSha256(..), the latter of
+    which could easily be hidden in a closure. It is not because its
+    presence may be convenient as a fallback eventually (currently,
+    until the utf8 encoding issue is resolved, consider the needSha256
+    functionality subject to change as in the future it may or may not
+    utf8-encode its argument before calculating the hash).
+
+    Just for completeness' sake: There is also, as a fallback for old
+    browsers, the possibility that window.needcbXXX objects, where XXX
+    is a hex-encoded SHA256 hash, are created. This should not be an
+    issue unless you like to have cryptical 36 letter names matching
+    sub-resource's SHA256 hash in your code's namespace.
+
+
   NOTE: Synchronous requests may be impossible from the "main thread."
         https://developer.mozilla.org/en/docs/Web/API/XMLHttpRequest:
 	Note: Starting with Gecko 30.0 (Firefox 30.0 / Thunderbird
@@ -141,8 +167,8 @@ needSha256 = (function(){
 
   function SHA256(b){
     var HASH = H.slice(i=0),
-        s = unescape(encodeURI(b)), /* encode as utf8 */
-//      s=b,
+//        s = unescape(encodeURI(b)), /* encode as utf8 */
+      s=b,
         W = [],
         l = s.length,
         m = [],
@@ -227,7 +253,7 @@ needSha256 = (function(){
 	for (var i = 0, len = binStr.length; i < len; ++i) {
 	    var byte = binStr.charCodeAt(i) & 0xff;  // byte at offset i
 	}
-	var actualHash = sha256(binStr);
+	var actualHash = needSha256(binStr);
 
 	/*dev-only*/ if ('undefined' === typeof hash) {
 	    /*dev-only*/ hash = actualHash;
