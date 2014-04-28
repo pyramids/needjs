@@ -4,4 +4,4 @@
 # do not publish a minified version on the repository until the code
 # starts to be useable
 *.min.js
-
+*.min.js.gz
