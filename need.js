@@ -228,7 +228,7 @@ needSha256 = (function(){
 	hash = urls;
 	urls = callback;
 	callback = '';
-    }
+    };
 
     xhr=new XMLHttpRequest();
     xhr.open('GET',urls[0],callback!==0);
@@ -245,14 +245,14 @@ needSha256 = (function(){
 	
 	/*dev-only*/	log('Need.js: Failed to load ' + urls[0]);
 	
-	window.need(callback, urls.slice(1), hash)
-    }
-
+	window.need(callback, urls.slice(1), hash);
+    };
+    
     var process = function(binStr) {
 	// check and evaluate javascript data in binStr (if and only if it has the correct SHA256 hash)
 	for (var i = 0, len = binStr.length; i < len; ++i) {
 	    var byte = binStr.charCodeAt(i) & 0xff;  // byte at offset i
-	}
+	};
 	var actualHash = needSha256(binStr);
 
 	/*dev-only*/ if ('undefined' === typeof hash) {
@@ -275,19 +275,19 @@ needSha256 = (function(){
 		if ('object' === typeof callback) {
 		    if (callback.filter) {
 			binStr = callback.filter(binStr);
-		    }
+		    };
 		    callback = callback.cb || '';
-		}
+		};
 		if ('string' === typeof callback) {
 		    binStr = binStr + '\n;' + callback;
-		}
+		};
 		if ('function' === typeof callback) {
 		    // Microsoft's recommended pattern to work around the
 		    // lack of an onload event in IE <= 8, found at
 		    // http://msdn.microsoft.com/en-us/library/ie/hh180173(v=vs.85).aspx
 		    if(s.addEventListener) {
 			s.addEventListener('load',callback,false);
-		    } 
+		    }
 		    // TODO: Test the following load event polyfill
 		    //       (for e.g. IE<=8), and decide if its small
 		    //       benefits are worth the small extra size
@@ -301,11 +301,11 @@ needSha256 = (function(){
 			s.onreadystatechange = function() {
 			    if (s.readyState == 'complete') {
 				callback;
-			    }
-			}
+			    };
+			};
 		    }
 		    */
-		    } else {
+		    else {
 			// fallback to polluting the global namespace
 			// (with a name including the very long and
 			// cryptic hash value, extremely unlikely to
@@ -315,14 +315,14 @@ needSha256 = (function(){
 			window[globalCallback] = function() {
 			    callback();
 			    delete window[globalCallback];
-			}
-		    }
-		}
+			};
+		    };
+		};
 		s.appendChild(document.createTextNode(binStr));
 		document.body.appendChild(s);
 	    } catch (e) {
 		/*dev-only*/ log('Error appending script from' + urls[0]+': '+e);
-	    }
+	    };
 	} else {
 	    /*dev-only*/ log('Need.js: ' + urls[0] + ' has incorrect hash ' + actualHash);
 
@@ -332,8 +332,8 @@ needSha256 = (function(){
 	    //       happening due to the coming fallback request(s).
 
 	    fallback();
-	}
-    }
+	};
+    };
 
     // TODO: The following hack prevents any character encoding to
     //       affect what exactly we receive, but forcing utf8 instead
@@ -351,9 +351,9 @@ needSha256 = (function(){
 		    process(this.responseText);
 		} else {
 		    fallback();
-		}
-	    }
-	}
+		};
+	    };
+	};
     };
     xhr.ontimeout = fallback;
     xhr.onerror = fallback;
@@ -362,5 +362,5 @@ needSha256 = (function(){
     if (callback===0) {
 	// synchronous case
 	process(xhr.responseText);
-    }
+    };
 });
