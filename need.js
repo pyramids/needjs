@@ -1,7 +1,9 @@
 /**
- * @FileOverview Load javascript dependencies with integrity check and fallback to multiple source URLs. Code repository at {@link https://github.com/pyramids/needjs}.
+ * @overview Load javascript dependencies with integrity check and fallback to multiple source URLs. Code repository at [https://github.com/pyramids/needjs].
+ *
  * @author Björn Stein
- * @license MIT-style
+ *
+ * @license MIT
  *
  * Goals:
  *  1. Check integrity of files loaded (with a cryptographic hash),
@@ -9,19 +11,7 @@
  *  2. Conditionally load polyfills based on object presence
  *  3. Permit synchronous or asynchronous operation
  *  4. No own dependencies
- */
 
-/*
- * BIG WARNING:
- *
- * Only very minimally tested.
- * Interface and functionality still subject to change.
- *
- * If you want to use this, contribute, to move it into stability!
- *
- */
-
-/*
   USAGE:
 
   If your code needs window.library provided by untrusted
@@ -36,7 +26,24 @@
   executed by injection into the DOM as a script element.  Code will
   not be evaluated unless it has the correct SHA256 hash.
 
-  NOTE:
+  IMPORTANT --- !!! BIG, BIG WARNING !!! ---
+
+  You can disable a core functionality, integrity checking, by
+  inserting an empty string ('') as next URL behind the one you whish
+  to trust even if its content does not match the hash you gave. This
+  can be useful if you have one or more fallback sources that you
+  trust more than you trust yourself (or clients running this code) to
+  get all SHA-256 hashes right.
+
+  NOTE (error handling):
+
+  If you do not want an exception to be thrown if no acceptable
+  content could be loaded from any of the URLs you supplied, you need
+  to append the intgeer 0 as final entry in the list of fallback
+  URLs. Alternatively, you may want to catch this event via a
+  window.onerror handler.
+
+  NOTE (CORS):
 
   You also have to tell the browser to not enforce the SAME-ORIGIN
   policy with cdn1 and cdn2 because this library uses a XMLHttpRequest
@@ -232,11 +239,21 @@ needSha256 = (function(){
 	callback = '';
     };
 
+    // try to log to console, if the browser lets us
+    /*dev-only*/ var log = function(msg) { try { console.log('need.js:',msg) } catch(e) {} };
+
+
+    if (urls[0] === 0) {
+	// we have reached a marker, the integer 0, given as next URL,
+	// indicating that the caller wishes us to fail silently rather
+	// than to throw an exception from asynchronously executed code
+
+	/*dev-only*/ log('silently failing for resource with hash '+hash);
+	return;
+    }
+
     var xhr=new XMLHttpRequest();
     xhr.open('GET',urls[0],callback!==0);
-
-    // try to log to console, if the browser lets us
-    /*dev-only*/ var log = function(msg) { try { console.log(msg) } catch(e) {} };
 
     var fallback = function() {
 	// try again, with the first item of urls (the url that just failed) removed
@@ -245,9 +262,18 @@ needSha256 = (function(){
 	// if any browser triggers more than one error handler (ontimeout, onerrror, or load with non-200 HTTP status code)
 	fallback = function() {};
 	
-	/*dev-only*/	log('Need.js: Failed to load ' + urls[0]);
-	
-	window.need(callback, urls.slice(1), hash);
+	/*dev-only*/	log('failed to load ' + urls[0]);
+
+	if (urls.length == 1) {
+	    // we are unable to load the dependency: throw an exception
+	    // (which can be "caught" in the window.onerror handler)
+	    //
+	    // NOTE: You can prevent this behavior by appending the
+	    //       urls array with the integer 0.
+	    throw 'need.js: no fallback after ' + urls[0] + ' for hash ' + hash;
+	} else {
+	    window.need(callback, urls.slice(1), hash);
+	};
     };
     
     // check and evaluate javascript data in binStr (if and only if it has the correct SHA256 hash)
@@ -259,12 +285,34 @@ needSha256 = (function(){
 	//       Web Crypto API: Maybe we should...
 	var actualHash = needSha256(binStr);
 
+
+	// Missing hash?
+	// In the development version only:
+	// Continue, logging the required hash via console.log
+
 	/*dev-only*/ if ('undefined' === typeof hash) {
 	    /*dev-only*/ hash = actualHash;
-	    /*dev-only*/ log('Need.js called without hash; change to:   need('+((callback!==urls)?callback+', ':'')+JSON.stringify(urls)+', \''+actualHash+'\')');
+	    /*dev-only*/ log('called without hash; change to:   need('+((callback!==urls)?callback+', ':'')+JSON.stringify(urls)+', \''+actualHash+'\')');
 	/*dev-only*/ }
 
-	if (hash == actualHash) {
+	if (hash != actualHash) {
+	    if (urls[1] === '') {
+		// we have an incorrect hash, but it is followed by an
+		// empty URL marker, indicating that we should trust
+		// this source despite the mismatch
+	    } else {
+		/*dev-only*/ log('' + urls[0] + ' has incorrect hash ' + actualHash);
+
+		// TODO: Here some logging (to web server?) could be added
+		//       even for production use.  However, in many cases
+		//       the server logs will already show what is
+		//       happening due to the coming fallback request(s).
+		
+		fallback();
+	    };
+	}
+
+//	if (hash == actualHash) {
 	    // TODO: Can we handle encodings other than utf8?  To
 	    //       reliably form the hash, we had to override it but
 	    //       now we need to interpret special charcters as
@@ -327,16 +375,7 @@ needSha256 = (function(){
 	    } catch (e) {
 		/*dev-only*/ log('Error appending script from' + urls[0]+': '+e);
 	    };
-	} else {
-	    /*dev-only*/ log('Need.js: ' + urls[0] + ' has incorrect hash ' + actualHash);
-
-	    // TODO: Here some logging (to web server?) could be added
-	    //       even for production use.  However, in many cases
-	    //       the server logs will already show what is
-	    //       happening due to the coming fallback request(s).
-
-	    fallback();
-	};
+//        };
     };
 
     // TODO: The following hack prevents any character encoding to

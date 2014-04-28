@@ -5,6 +5,11 @@ MIN=uglifyjs --lint -c -m
 
 all: need.min.js README.md
 
+docs: jsdox/need.md
+
+jsdox/need.md: need.js
+	mkdir -p jsdox
+	jsdox need.js --output jsdox
 
 need.min.js: need.js
 	cat need.js |$(REMOVE_DEV_ONLY) |$(MIN) >need.min.js
