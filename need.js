@@ -68,7 +68,9 @@
     3. An object, then multiple callback and preprocessing functions
        are supported:
 
-         callback.cb: a string or a function, is teh regular callback
+         callback.cb: a string or a function taking the place of the
+                      string or function that could otherwise be
+                      passed as callback
 
 	 callback.filter: a function with string argument returning a
 	                  string, can be used to pre-process the
