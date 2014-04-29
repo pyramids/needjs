@@ -259,14 +259,10 @@ needSha256 = (function(){
 window.need = (function(callback, urls, hash) {
     "use strict";
 
-    if (!(urls && urls.push)) {
+//    if (!(urls && urls.push)) {
+    if (callback.push) {
 	// expected array urls not found,
 	// so assume that the optional parameter callback is missing
-	//
-	// NOTE TO PROGRAMMERS: 
-	// If you wish to extend the functionality to allow hash to
-	// take an array (or even just any object, at least in some
-	// javascript execution environments), this logic will break
 	hash = urls;
 	urls = callback;
 	callback = '';
