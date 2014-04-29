@@ -72,9 +72,38 @@
                       string or function that could otherwise be
                       passed as callback
 
-	 callback.filter: a function with string argument returning a
-	                  string, can be used to pre-process the
-	                  loaded content before execution
+	 callback.filter: a function(content, contentHash,
+	                  desiredHash) returning a string, can be used
+	                  to manipulate the loaded content before
+	                  execution. It will only be called if the
+	                  source is acceptable (either the contentHash
+	                  === desiredHash, or the source URL was
+	                  flagged to be trusted regardless of hash by
+	                  being directly followed by '' as next URL).
+			  
+			  To abort loading, return '' (which will be
+			  executed as script, with almost no effects).
+
+			  To fallback to other sources, do not return
+			  anything (current behavior is to fallback if
+			  no string type is returned, but this
+			  behavior is subject to change. Hence only
+			  "return;" is recommended to cause this
+			  fallback).
+
+			  Avoid throwing uncatched exceptions, as
+			  these will currently bubble up to
+			  window.onerror and abort all loading, and as
+			  it is possible that this behavior will be
+			  changed in the future, if a need to catch
+			  exceptions in need.js should be recognized.
+
+			  NOTE: For defining future functionality,
+			  avoid using the integer value 0 for
+			  anything. Consistent behavior with the use
+			  of 0 as URL would be to fail silently, but
+			  this is already achieved by returning '' and
+			  differs from current behavior.
 			  
          callback.el: a string with the element name to be injected
                       (default: 'script')
@@ -331,8 +360,17 @@ needSha256 = (function(){
 	    try {
 		if ('object' === typeof callback) {
 		    if (callback.filter) {
-			binStr = callback.filter(binStr);
+			binStr = callback.filter(binStr, actualHash, hash);
+			
+			// do not use this result if it is not a string
+			if ('string' !== typeof(binStr)) {
+			    /*dev-only*/ log('callback.filter rejected content from '+urls[0]);
+			    // fallback to other sources
+			    fallback();
+			}
 		    };
+
+		    // proceed as if callback.cb had been passed as callback
 		    callback = callback.cb || '';
 		};
 		if ('string' === typeof callback) {
