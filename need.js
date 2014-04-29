@@ -289,23 +289,27 @@ window.need = (function(callback, urls, hash) {
     xhr.open('GET',urls[0],callback!==0);
 
     var fallback = function() {
-	// try again, with the first item of urls (the url that just failed) removed
+	// try again, with the first item of urls (the url that just
+	// failed) removed
 
-	// only do the following once,
-	// if any browser triggers more than one error handler (ontimeout, onerrror, or load with non-200 HTTP status code)
+	// only do the following once, in case any browser triggers
+	// more than one error handler (ontimeout, onerrror, or load
+	// with non-200 HTTP status code)
 	fallback = function() {};
 	
 	/*dev-only*/	log('failed to load ' + urls[0]);
 
-	if (urls.length == 1) {
+	if (urls.length > 1) {
+	    // there are fallback urls remaining:
+	    // remove the on that just failed, urls[0], and try again
+	    window.need(callback, urls.slice(1), hash);
+	} else {
 	    // we are unable to load the dependency: throw an exception
 	    // (which can be "caught" in the window.onerror handler)
 	    //
 	    // NOTE: You can prevent this behavior by appending the
 	    //       urls array with the integer 0.
 	    throw 'need.js: no fallback after ' + urls[0] + ' for hash ' + hash;
-	} else {
-	    window.need(callback, urls.slice(1), hash);
 	};
     };
     
