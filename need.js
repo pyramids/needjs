@@ -311,6 +311,9 @@ needSha256 = (function(){
 		//       happening due to the coming fallback request(s).
 		
 		fallback();
+
+		// important: abort (lest we inject the bad content)
+		return;
 	    };
 	}
 
