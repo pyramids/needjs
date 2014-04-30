@@ -357,8 +357,10 @@ window.need = (function(callback, urls, hash) {
 
 	    // Javascript injection, found at
 	    // http://stackoverflow.com/questions/6432984/adding-script-element-to-the-dom-and-have-the-javascript-run
-	    var s = document.createElement(callback.el || 'script');
+	    var el = callback.el || 'script';
+	    var s = document.createElement(el);
 	    s.type = callback.type || 'text/javascript';
+	    var cbAfter;
 	    try {
 		if ('object' === typeof callback) {
 		    if (callback.filter) {
@@ -375,8 +377,18 @@ window.need = (function(callback, urls, hash) {
 		    // proceed as if callback.cb had been passed as callback
 		    callback = callback.cb || '';
 		};
-		if ('string' === typeof callback) {
-		    binStr = binStr + '\n;' + callback;
+		if (('string' === typeof callback) && (callback !== '')) {
+		    if (el === 'script') {
+			// inject a string given as callback directly
+			// into the loaded resource, to be executed
+			// outside any scoping if and when the loaded
+			// resource has executed without error
+			binStr = binStr + '\n;' + callback;
+		    } else {
+			// loaded resource is not a script, so the
+			// best we can do to honor it is to eval it
+			callback = function() { eval(callback); };
+		    };
 		};
 		if ('function' === typeof callback) {
 		    // Microsoft's recommended pattern to work around the
@@ -384,12 +396,7 @@ window.need = (function(callback, urls, hash) {
 		    // http://msdn.microsoft.com/en-us/library/ie/hh180173(v=vs.85).aspx
 		    if(s.addEventListener) {
 			s.addEventListener('load',callback,false);
-		    }
-		    // TODO: Test the following load event polyfill
-		    //       (for e.g. IE<=8), and decide if its small
-		    //       benefits are worth the small extra size
-		    /*
-		    else if(s.readyState) {
+		    } else if(s.readyState) {
 			// deviating from Microsoft's recommendation,
 			// check that the readyState has changed all
 			// the way to 'complete' to avoid calling
@@ -397,26 +404,45 @@ window.need = (function(callback, urls, hash) {
 			// events for other ready states first
 			s.onreadystatechange = function() {
 			    if (s.readyState == 'complete') {
-				callback;
+				callback();
 			    };
 			};
-		    }
-		    */
-		    else {
+		    } else if (el !== 'script') {
 			// fallback to polluting the global namespace
 			// (with a name including the very long and
 			// cryptic hash value, extremely unlikely to
 			// intefere with anything else)
+
+			// TODO: This does not work for non-script resources.
+			//       Consider checking and possibly calling directly.
 			var globalCallback = 'needcb' + hash;
 			binStr = binStr + '\n;' + globalCallback+'()';
 			window[globalCallback] = function() {
 			    (callback)();
 			    delete window[globalCallback];
 			};
-		    };
+		    } else {
+			// set flag to immitate the onload-like
+			// callback by having it called later
+			cbAfter = 1;
+		    }
 		};
 		s.appendChild(document.createTextNode(binStr));
 		document.body.appendChild(s);
+		if (cbAfter) {
+		    // ultimate fallback for honoring the callback
+		    // parameter: execute, after a very long delay, the
+		    // callback meant to be called immediately after
+		    // the browser processed the new content (onload
+		    // event), instead of checking when it is really
+		    // ready (better late than never...)
+		    //
+		    // NOTE: This behaves differently from the
+		    //       intention behind the callback in many
+		    //       ways, such as not checking for successful
+		    //       or complete parsing.
+		    setTimeout(callback, 1000);
+		}
 	    } catch (e) {
 		/*dev-only*/ log('Error appending script from' + urls[0]+': '+e);
 	    };
