@@ -404,7 +404,7 @@ window.need = (function(callback, urls, hash) {
 			// events for other ready states first
 			s.onreadystatechange = function() {
 			    if (s.readyState == 'complete') {
-				callback();
+				(callback)();
 			    };
 			};
 		    } else if (el !== 'script') {
