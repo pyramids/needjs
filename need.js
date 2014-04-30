@@ -325,7 +325,7 @@ window.need = (function(callback, urls, hash) {
 
 	/*dev-only*/ if ('undefined' === typeof hash) {
 	    /*dev-only*/ hash = actualHash;
-	    /*dev-only*/ log('called without hash; change to:   need('+((callback!==urls)?callback+', ':'')+JSON.stringify(urls)+', \''+actualHash+'\')');
+	    /*dev-only*/ log('called without hash; use \''+actualHash+'\')');
 	/*dev-only*/ }
 
 	if (hash != actualHash) {
