@@ -105,11 +105,11 @@ Example of integrity-checked CSS loading. Load CSS stylesheet, with integrity ch
     </script>
   </head>
   <body>
-    <h1>Hello</h1>
-    If you can see this,
-    your browser has meanwhile fetched the CSS stylesheet,
-    verified its integrity, 
-    and executed a javascript callback to remove a
+    <h1>
+      Hello
+    </h1>
+    If you can see this, your browser has meanwhile fetched the CSS stylesheet,
+    verified its integrity,  and executed a javascript callback to remove a
     <code>display: none!important;</code>
     style.
   </body>
@@ -119,13 +119,13 @@ Example of integrity-checked CSS loading. Load CSS stylesheet, with integrity ch
 Alternatives
 ------------
 
-There are lots of loaders for javascript (and even more general resources).
-Yet currently, I am only aware of a single full alternative
-for loading resources with integrity checks and fallback to
-alternative sources,
+There are lots of loaders for javascript (and even more general
+resources).  Yet currently, I am only aware of a single full
+alternative for loading resources with integrity checks and fallback
+to alternative sources,
 [VerifyJS](https://github.com/ryancdotorg/VerifyJS). Unlike needjs,
-VerifyJS even comes with a license designed to prevent you from being
-allowed to commit the worst security blunder in using an integrity
-verifier for external sources, namely loading the
-integrity-verification library itself from an external (and hence
-potentially untrusted) source.
+VerifyJS even comes with a license expressly forbidding you from
+committing the worst security blunder in using an integrity verifier
+for external sources, namely loading the integrity-verification
+library itself from an external (and hence potentially untrusted)
+source.
