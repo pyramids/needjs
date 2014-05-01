@@ -86,25 +86,23 @@ need({
 );
 ```
 
-Example of integrity-checked CSS loading:
+Example of integrity-checked CSS loading. Load CSS stylesheet, with integrity check, and apply a custom fout control (since neddjs' asynchronous loading may make browsers try drawing the page before the stylesheet is available):
 ```html
 <!DOCTYPE html>
 <html>
   <head>
-  <!-- Load CSS stylesheet, with integrity check, and apply a custom fout control --!>
-  <!-- (since neddjs' asynchronous loading may make browsers try drawing the page before the stylesheet is available). --!>
-  <style id="fout">
-    html{display:none!important;}
-  </style>
-  <script src="need.js"></script>
-  <script>
-    need({el:'style', type:'text/css', cb:function(){
-        // style sheet is loaded: display!
-        var fout = document.getElementById('fout');
-        fout.parentNode.removeChild(fout);
-      }}, ['//myCDN.org/style.css', '/style.css'],
-      '297d814689043f9716f98901d06ac30de557664f5361c3b06fb7984fbb605e60');
-  </script>
+    <style id="fout">
+      html{display:none!important;}
+    </style>
+    <script src="need.js"></script>
+    <script>
+      need({el:'style', type:'text/css', cb:function(){
+          // style sheet is loaded: display!
+          var fout = document.getElementById('fout');
+          fout.parentNode.removeChild(fout);
+        }}, ['//myCDN.org/style.css', '/style.css'],
+        '297d814689043f9716f98901d06ac30de557664f5361c3b06fb7984fbb605e60');
+    </script>
   </head>
   <body>
     <h1>Hello</h1>
