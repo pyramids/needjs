@@ -91,13 +91,11 @@ Example of integrity-checked CSS loading:
 <!DOCTYPE html>
 <html>
   <head>
-  <!--- Load CSS stylesheet, 
-        with integrity check, 
+  <!-- Load CSS stylesheet, with integrity check, 
 	and apply a custom fout control
         (since neddjs' asynchronous loading
 	 may make browsers try drawing the page
-	 before the stylesheet is available).
-  ---!>
+	 before the stylesheet is available). --!>
   <style id="fout">
     html{display:none!important;}
   </style>
