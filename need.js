@@ -175,7 +175,7 @@
 The above copyright notice serves as a permissions notice also, and may optionally be included in copies or portions of the work.
 The work is provided “as is”, without warranty or support, express or implied. The author(s) are not liable for any damages, misuse, or other claim, whether from or as a consequence of usage of the given work.
 */
-needSha256 = (function(){
+window.needSha256 = (function(){
   // Eratosthenes seive to find primes up to 311 for magic constants. This is why SHA256 is better than SHA1
   var i=1,
       j,
@@ -511,4 +511,4 @@ window.need = (function(callback, urls, hash) {
 	// synchronous case
 	process(xhr.responseText);
     };
-});
+})();
