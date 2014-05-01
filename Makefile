@@ -1,5 +1,6 @@
 # remove lines containing /*dev-only*/
-REMOVE_DEV_ONLY=sed '/\/\*dev-only\*\//d'
+# and sections from /*dev-only-start*/ to /*dev-only-stop*/
+REMOVE_DEV_ONLY=awk -f nodev.awk
 
 MIN=uglifyjs --lint -c -m
 
@@ -24,4 +25,3 @@ README.md: need.min.js need.min.js.gz makestats
 
 clean:
 	rm -f *.min.js *.min.js.gz *~
-

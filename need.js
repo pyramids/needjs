@@ -268,16 +268,24 @@ window.need = (function(callback, urls, hash) {
 	callback = '';
     };
 
-    // try to log to console, if the browser lets us
-    /*dev-only*/ var log = function(msg) { try { console.log('need.js:',msg) } catch(e) {} };
-
+    /*dev-only-start*/
+    var log = function(msg) { 
+	// try to log to console, if the browser lets us
+	try { 
+	    console.log('need.js:',msg);
+	} catch(e) {};
+    };
+    /*dev-only-stop*/
 
     if (urls[0] === 0) {
 	// we have reached a marker, the integer 0, given as next URL,
 	// indicating that the caller wishes us to fail silently rather
 	// than to throw an exception from asynchronously executed code
 
-	/*dev-only*/ log('silently failing for resource with hash '+hash);
+	/*dev-only-start*/
+	log('silently failing for resource with hash '+hash);
+	/*dev-only-stop*/
+
 	return;
     };
 
@@ -323,10 +331,15 @@ window.need = (function(callback, urls, hash) {
 	// In the development version only:
 	// Continue, logging the required hash via console.log
 
-	/*dev-only*/ if ('undefined' === typeof hash) {
-	    /*dev-only*/ hash = actualHash;
-	    /*dev-only*/ log('called without hash; use \''+actualHash+'\')');
-	/*dev-only*/ }
+	/*dev-only-start*/
+	if ('undefined' === typeof hash) {
+	    // no hash given:
+	    // go ahead in development version only; 
+	    // advise on how to proceed
+	    hash = actualHash;
+	    log('called without hash for \''+urls[0]+'\'; use \''+actualHash+'\')');
+	}
+	/*dev-only-stop*/
 
 	if (hash != actualHash) {
 	    if (urls[1] === '') {
@@ -334,7 +347,9 @@ window.need = (function(callback, urls, hash) {
 		// empty URL marker, indicating that we should trust
 		// this source despite the mismatch
 	    } else {
-		/*dev-only*/ log('' + urls[0] + ' has incorrect hash ' + actualHash);
+		/*dev-only-start*/ 
+		log('' + urls[0] + ' has incorrect hash ' + actualHash);
+		/*dev-only-stop*/
 
 		// TODO: Here some logging (to web server?) could be added
 		//       even for production use.  However, in many cases
@@ -368,11 +383,18 @@ window.need = (function(callback, urls, hash) {
 			
 			// do not use this result if it is not a string
 			if ('string' !== typeof(binStr)) {
-			    /*dev-only*/ log('callback.filter rejected content from '+urls[0]);
+			    /*dev-only-start*/
+			    log(
+				'callback.filter rejected content from '
+				+ urls[0]
+			    );
+			    /*dev-only-stop*/
+
 			    // fallback to other sources
 			    fallback();
 
-			    // and abort lest we inject the returned flag into the DOM
+			    // and abort lest we inject the returned
+			    // flag into the DOM
 			    return;
 			};
 		    };
@@ -447,7 +469,9 @@ window.need = (function(callback, urls, hash) {
 		    setTimeout(callback, 1000);
 		};
 	    } catch (e) {
-		/*dev-only*/ log('Error appending script from' + urls[0]+': '+e);
+		/*dev-only-start*/
+		log('Error appending script from' + urls[0]+': '+e);
+		/*dev-only-stop*/
 	    };
 //        };
     };
