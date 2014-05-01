@@ -3,15 +3,18 @@
 # and ending with   /*dev-only-stop*/
 # and further omitting single lines containing /*dev-only*/
 
-# initialize
-BEGIN { off = 0; }
+/\/\*dev-only-start\*\// {
+  print "// dev-only: " $0;
+  getline;
+  while (index($0, "/*dev-only-stop*/") == 0) {
+      getline;
+      print "// dev-only: " $0;
+  }  
+}
 
-# turn output off
-/\/\*dev-only-start\\*\// { off = 1; }
+/\/\*dev-only\*\// { 
+  print "// dev-only: " $0;
+  getline;
+}
 
-# turn output on
-/\/\*dev-only-stop\*\// { off = 0; }
-
-# output everything not containing /*dev-only*/ 
-# or a pattern such as             /*dev-only-xxx*/
-!/\/\*dev-only[-]?[a-z]*\*\// { if (!off) print; }
+{ print }
