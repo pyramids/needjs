@@ -5,7 +5,7 @@ Browser Javascript loader with integrity checks, failover to
 additional sources, callback or synchronous operation.
 
 <b>Warning</b>: 
-Mostly untested and under heavy development. Except bugs.
+Mostly untested and under heavy development. Expect bugs.
 
 Statistics
 ------
