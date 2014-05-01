@@ -1,9 +1,14 @@
 #/bin/bash
 
 DATE=`date -u`
-SIZEMIN=`wc need.min.js.gz |awk '{ print $3 }'`
-SIZE=`cat need.js |uglifyjs -c -m 'eval' |gzip |wc |awk '{ print $3 }'`
+SIZE_MIN=`wc need.min.js.gz |awk '{ print $3 }'`
+#SIZE=`cat need.js |uglifyjs -c -m 'eval' |gzip |wc |awk '{ print $3 }'`
+BOOTSTRAP_SIZE_MIN=`wc bootstrap.min.js.gz |awk '{ print $3 }'`
 
-MESSAGE="Minified and gzipped size is \`$SIZEMIN\` bytes (auto-updated on $DATE), after removal of development support such as console.log output. Without this removal and slightly less agressive minification/gzipping, the size would be \`$SIZE\` bytes."
+MESSAGE_MIN="Minified and gzipped size is \`$SIZE_MIN\` bytes (auto-updated on $DATE), after removal of development support such as console.log output."
 
-sed -i "/Minified and gzipped size/c\\$MESSAGE" README.md
+MESSAGE_BOOT="If that is too much for you, there is a bootstrap version that minifies and gzips down to \`$BOOTSTRAP_SIZE_MIN\` bytes whilst compromising only on speed, not on functionality (invocations using unsupported functionality are deferred and should work as soon as the full version has been loaded)."
+
+#MESSAGE="Without this removal and slightly less agressive minification/gzipping, the size would be \`$SIZE\` bytes."
+
+sed -i "/Minified and gzipped size/c\\$MESSAGE_MIN $MESSAGE_BOOT" README.md

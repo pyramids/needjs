@@ -18,8 +18,14 @@ need.min.js: need.js
 need.min.js.gz: need.min.js
 	zopfli --i1000 need.min.js >need.min.js.gz
 
+bootstrap.min.js: bootstrap.js
+	cat bootstrap.js |$(REMOVE_DEV_ONLY) |$(MIN) >bootstrap.min.js
+
+bootstrap.min.js.gz: bootstrap.min.js
+	zopfli --i1000 bootstrap.min.js >bootstrap.min.js.gz
+
 # auto-update README.md with size statistics
-README.md: need.min.js need.min.js.gz makestats
+README.md: need.min.js need.min.js.gz bootstrap.min.js.gz makestats
 	bash ./makestats
 
 

@@ -324,7 +324,7 @@ window.need = (function(callback, urls, hash) {
 	//
 	//       Polycrypt, crypto-js, ...: likely not significantly faster
 	//       Web Crypto API: Maybe we should...
-	var actualHash = needSha256(binStr);
+	var actualHash = window.needSha256(binStr);
 
 
 	// Missing hash?
