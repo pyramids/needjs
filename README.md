@@ -42,7 +42,7 @@ the maximum debug information. Please contribute bug fixes.
 Alternatives
 ------------
 
-There are lots of loaders for javascript (and even more general resource).
+There are lots of loaders for javascript (and even more general resources).
 Yet currently, I am only aware of a single full alternative
 for loading resources with integrity checks and fallback to
 alternative sources,
