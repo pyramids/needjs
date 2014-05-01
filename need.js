@@ -371,6 +371,9 @@ window.need = (function(callback, urls, hash) {
 			    /*dev-only*/ log('callback.filter rejected content from '+urls[0]);
 			    // fallback to other sources
 			    fallback();
+
+			    // and abort lest we inject the returned flag into the DOM
+			    return;
 			};
 		    };
 
