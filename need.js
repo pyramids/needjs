@@ -511,4 +511,4 @@ window.need = (function(callback, urls, hash) {
 	// synchronous case
 	process(xhr.responseText);
     };
-})();
+});
