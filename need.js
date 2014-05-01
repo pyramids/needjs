@@ -416,7 +416,7 @@ window.need = (function(callback, urls, hash) {
 		    };
 		};
 		if ('function' === typeof callback) {
-		    /*dev-only*/log('adding callback '+callback);
+		    /*dev-only*/ //log('adding callback '+callback);
 
 		    // Microsoft's recommended pattern to work around the
 		    // lack of an onload event in IE <= 8, found at
