@@ -1,13 +1,14 @@
 needjs
 ======
 
-Needjs is an in-rowser resource loader (for Javascript, CSS, etc.)
+Needjs is an in-browser resource loader (for Javascript, CSS, etc.)
 with integrity checks, failover to additional sources, callback or
 synchronous operation. The idea is allow your website to utilize
 untrusted sources, such as public CDNs or servers not under your sole
-and complete control, without risking either getting undesired content
-or inheriting their potential irreliability (in either being up at all
-or in serving unaltered content).
+and complete control, without risking either getting undesired (and
+potentially malicious) content or inheriting their potential
+irreliability (in either being up at all or in serving unaltered
+content).
 
 <b>Warning 1</b>: Mostly untested and under heavy development. Expect
 bugs.
@@ -41,8 +42,8 @@ the maximum debug information. Please contribute bug fixes.
 Alternatives
 ------------
 
-There are lots of javascript, and even more general resource
-loaders. Yet currently, I am only aware of a single full alternative
+There are lots of loaders for javascript (and even more general resource).
+Yet currently, I am only aware of a single full alternative
 for loading resources with integrity checks and fallback to
 alternative sources,
 [VerifyJS](https://github.com/ryancdotorg/VerifyJS). Unlike needjs,
