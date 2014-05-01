@@ -279,7 +279,7 @@ window.need = (function(callback, urls, hash) {
 
 	/*dev-only*/ log('silently failing for resource with hash '+hash);
 	return;
-    }
+    };
 
     var xhr=new XMLHttpRequest();
     xhr.open('GET',urls[0],callback!==0);
@@ -346,7 +346,7 @@ window.need = (function(callback, urls, hash) {
 		// important: abort (lest we inject the bad content)
 		return;
 	    };
-	}
+	};
 
 //	if (hash == actualHash) {
 	    // TODO: Can we handle encodings other than utf8?  To
@@ -371,7 +371,7 @@ window.need = (function(callback, urls, hash) {
 			    /*dev-only*/ log('callback.filter rejected content from '+urls[0]);
 			    // fallback to other sources
 			    fallback();
-			}
+			};
 		    };
 
 		    // proceed as if callback.cb had been passed as callback
@@ -425,7 +425,7 @@ window.need = (function(callback, urls, hash) {
 			// set flag to immitate the onload-like
 			// callback by having it called later
 			cbAfter = 1;
-		    }
+		    };
 		};
 		s.appendChild(document.createTextNode(binStr));
 		document.body.appendChild(s);
@@ -442,7 +442,7 @@ window.need = (function(callback, urls, hash) {
 		    //       ways, such as not checking for successful
 		    //       or complete parsing.
 		    setTimeout(callback, 1000);
-		}
+		};
 	    } catch (e) {
 		/*dev-only*/ log('Error appending script from' + urls[0]+': '+e);
 	    };
