@@ -2,7 +2,7 @@
 
 DATE=`date -u`
 SIZEMIN=`wc need.min.js.gz |awk '{ print $3 }'`
-SIZE=`cat need.js |uglifyjs |gzip |wc |awk '{ print $3 }'`
+SIZE=`cat need.js |uglifyjs -c -m 'eval' |gzip |wc |awk '{ print $3 }'`
 
 MESSAGE="Minified and gzipped size is \`$SIZEMIN\` bytes (auto-updated on $DATE), after removal of development support such as console.log output. Without this removal and slightly less agressive minification/gzipping, the size would be \`$SIZE\` bytes."
 
