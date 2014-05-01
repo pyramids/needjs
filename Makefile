@@ -2,7 +2,7 @@
 # and sections from /*dev-only-start*/ to /*dev-only-stop*/
 REMOVE_DEV_ONLY=awk -f nodev.awk
 
-MIN=uglifyjs --lint -c -m
+MIN=uglifyjs --lint -c -m 'eval'
 
 all: need.min.js README.md
 

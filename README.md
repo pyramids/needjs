@@ -6,7 +6,7 @@ Browser Javascript loader with integrity checks, failover to additional sources,
 Statistics
 ------
 
-Minified and gzipped size is `1247` bytes (auto-updated on Thu May  1 12:57:40 UTC 2014), after removal of development support such as console.log output. Without this removal and slightly less agressive minification/gzipping, the size would be `1526` bytes.
+Minified and gzipped size is `1160` bytes (auto-updated on Thu May  1 13:17:37 UTC 2014), after removal of development support such as console.log output. Without this removal and slightly less agressive minification/gzipping, the size would be `1527` bytes.
 
 The minified script is not included to discourage production use: This script is largely untested and I wish to encourage you to obtain the maximum debug information. Please contribute bug fixes.
 
