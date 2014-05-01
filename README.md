@@ -33,20 +33,19 @@ the maximum debug information. Please contribute bug fixes.
 Example Usage
 -----
 
+Simple example:
 ```javascript
 // Load a javascript file, with no integrity check
 // NOTE: If you use the development (the non-minified need.js 
 //       in the github repository), the hash to be used to
 //       upgrade to integrity checking is logged via console.log(..).
-window.JSON || need(
-    [
+need([
         "//cdnjs.cloudflare.com/ajax/libs/json3/3.3.1/json3.min.js",
         "//cdn.jsdelivr.net/json3/3.3.1/json3.min.js"
-    ]
-);
-```javascript
+]);
+```
 
-
+Slightly advanced example:
 ```javascript
 // Load JSON polyfill asynchronously, if the browser requires it.
 // Try public CDNs first, but insist on getting the exact content you expect,
@@ -61,9 +60,9 @@ window.JSON || need(
     ],
     "ad45931efa6cdd31ebae327b2313915473ddfb24ef144ef491c939aa4c24d832"
 );
-```javascript
+```
 
-
+Advanced example:
 ```javascript
 // Load the old version (0.1.3) of bitcoinjs-lib, 
 // patching it to not use console.log,
@@ -85,9 +84,9 @@ need({
    ],
    '7084c8ba54ac633a4b58bc62f7a18c89f55dc2685ea137cade1ed358af63168b'
 );
-```javascript
+```
 
-
+Example of integrity-checked CSS loading:
 ```html
 <!DOCTYPE html>
 <html>
