@@ -416,12 +416,19 @@ window.need = (function(callback, urls, hash) {
 		    };
 		};
 		if ('function' === typeof callback) {
+		    /*dev-only*/log('adding callback '+callback);
+
 		    // Microsoft's recommended pattern to work around the
 		    // lack of an onload event in IE <= 8, found at
 		    // http://msdn.microsoft.com/en-us/library/ie/hh180173(v=vs.85).aspx
-		    if(s.addEventListener) {
-			s.addEventListener('load',callback,false);
-		    } else if(s.readyState) {
+		    if((el !== 'script') && s.addEventListener) {
+			s.addEventListener('load',callback,!false);
+			/*dev-only-start*/
+			s.addEventListener('error',function(){
+			    log('error processing '+urls[0]);
+			},false);
+			/*dev-only-stop*/
+		    } else if((el !== 'script') && s.readyState) {
 			// deviating from Microsoft's recommendation,
 			// check that the readyState has changed all
 			// the way to 'complete' to avoid calling
@@ -432,7 +439,7 @@ window.need = (function(callback, urls, hash) {
 				(callback)();
 			    };
 			};
-		    } else if (el !== 'script') {
+		    } else if (el === 'script') {
 			// fallback to polluting the global namespace
 			// (with a name including the very long and
 			// cryptic hash value, extremely unlikely to
