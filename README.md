@@ -36,9 +36,10 @@ Example Usage
 Simple example:
 ```javascript
 // Load a javascript file, with no integrity check
-// NOTE: If you use the development (the non-minified need.js 
-//       in the github repository), the hash to be used to
-//       upgrade to integrity checking is logged via console.log(..).
+// NOTE: If you use the development version (the non-minified need.js
+//       in the github repository), the correct hash will be logged via
+//       console.log(..). You can then easily add integrity checking by
+//       appending the hash as an additional parameter to need(..).
 need([
         "//cdnjs.cloudflare.com/ajax/libs/json3/3.3.1/json3.min.js",
         "//cdn.jsdelivr.net/json3/3.3.1/json3.min.js"
