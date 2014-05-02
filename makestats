@@ -17,5 +17,5 @@ MESSAGE_BOOT="If that is too much for you, there is a bootstrap version that min
 sed -i "/Minified and gzipped size/c\\$MESSAGE_MIN $MESSAGE_BOOT" README.md
 
 
-SHA256MSG="        '"$SHA256"'\\/\\/ SHA256 of need.min.js"
+SHA256MSG="    '"$SHA256"'\\/\\/ SHA256 of need.min.js"
 sed -i "/SHA256 of need.min.js/c\\$SHA256MSG" README.md
