@@ -15,16 +15,18 @@ bugs.
 
 <b>Warning 2</b>: If you want to use this loader to improve security
 against external sources injecting malicious code into your site,
-consider that you will need to integrity-check, e.g. by using needjs,
-for _all_ untrusted content (including what you may mistake as
-harmless), and you need to load needjs itself from a safe
-source, e.g. by inlining it into your html document or loading it from
-your site.
+consider that you will need to perform integrity-checking, e.g. by
+using needjs with a non-empty hash parameter, for _all_ untrusted
+content. That includes what you may mistakenly assume to be harmless
+non-code, non-content but what user browsers' may interprete
+differently. Finally, using needjs for this task requires that you
+load needjs itself from a safe source, e.g. by inlining it into your
+html document or by loading it from your own server(s).
 
 Statistics
 ----------
 
-Minified and gzipped size is `1159` bytes (auto-updated on Fri May  2 11:29:18 UTC 2014), after removal of development support such as console.log output. If that is too much for you, there is a bootstrap version that minifies and gzips down to `777` bytes whilst compromising only on speed, not on functionality (invocations using unsupported functionality are deferred and should work as soon as the full version has been loaded).
+Minified and gzipped size is `1159` bytes (auto-updated on Fri May  2 11:40:21 UTC 2014), after removal of development support such as console.log output. If that is too much for you, there is a bootstrap version that minifies and gzips down to `777` bytes whilst compromising only on speed, not on functionality (invocations using unsupported functionality are deferred and should work as soon as the full version has been loaded).
 
 The minified scripts are not included to discourage production use:
 This script is largely untested and I wish to encourage you to obtain
