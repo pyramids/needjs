@@ -24,7 +24,7 @@ your site.
 Statistics
 ----------
 
-Minified and gzipped size is `1159` bytes (auto-updated on Thu May  1 14:23:56 UTC 2014), after removal of development support such as console.log output. If that is too much for you, there is a bootstrap version that minifies and gzips down to `777` bytes whilst compromising only on speed, not on functionality (invocations using unsupported functionality are deferred and should work as soon as the full version has been loaded).
+Minified and gzipped size is `1159` bytes (auto-updated on Fri May  2 10:54:28 UTC 2014), after removal of development support such as console.log output. If that is too much for you, there is a bootstrap version that minifies and gzips down to `777` bytes whilst compromising only on speed, not on functionality (invocations using unsupported functionality are deferred and should work as soon as the full version has been loaded).
 
 The minified scripts are not included to discourage production use:
 This script is largely untested and I wish to encourage you to obtain
@@ -87,7 +87,7 @@ need({
 );
 ```
 
-Example of integrity-checked CSS loading. Load CSS stylesheet, with integrity check, and apply a custom fout control (since neddjs' asynchronous loading may make browsers try drawing the page before the stylesheet is available):
+Example of integrity-checking CSS loading in a HTML document. Implement fout-like control to prevent rendering unstyled content: After successful loading, remove a style that prevents the document to be displayed prior to that event.
 ```html
 <!DOCTYPE html>
 <html>
@@ -95,14 +95,17 @@ Example of integrity-checked CSS loading. Load CSS stylesheet, with integrity ch
     <style id="fout">
       html{display:none!important;}
     </style>
-    <script src="need.js"></script>
+    <script src="/js/need.js"></script>
     <script>
-      need({el:'style', type:'text/css', cb:function(){
+      need(
+        {el:'style', type:'text/css', cb:function(){
           // style sheet is loaded: display!
           var fout = document.getElementById('fout');
           fout.parentNode.removeChild(fout);
-        }}, ['//myCDN.org/style.css', '/style.css'],
-        '297d814689043f9716f98901d06ac30de557664f5361c3b06fb7984fbb605e60');
+        }},
+        ['//myCDN.com/css/style.css', '/css/style.css'],
+        '297d814689043f9716f98901d06ac30de557664f5361c3b06fb7984fbb605e60'
+      );
     </script>
   </head>
   <body>
@@ -116,6 +119,63 @@ Example of integrity-checked CSS loading. Load CSS stylesheet, with integrity ch
   </body>
 </html>
 ```
+
+Example of using the bootstrap version, to minimize the amount of
+bytes that need to be served from your trusted server hosting the html
+document itself and bootstrap.min.js. This example loads the full
+version of needjs, a custom javacript file, and a stylesheet, all from
+potentially untrusted external sources:
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <style id="fout">
+      html{display:none!important;}
+    </style>
+    <script src="/js/bootstap.min.js"></script>
+    <script>
+      // start loading full version of needjs
+      need(
+        ['//myCDN-1.com/js/need.min.js', '//myCDN-2.com/js/need.min.js'],
+        'fb3be500756eb251f24e6bc9caecfd54e4afb0342fbdbd38a3dc3faa93e18634'// SHA256 of need.min.js
+      );
+
+      // start loading your site's custom javascript
+      // (note you could incorporate all other calls to need(..),
+      //  including---as long as here you do not use the optional first
+      //  parameter to need(..)---the one to load the full version, 
+      //  into that javascript file, to enable easy minification of all 
+      //  this and to move even more to your less trusted external domains)
+      need(
+        ['//myCDN-1.com/js/my.js', '//myCDN-2.com/js/my.js'],
+        '33171773db3c2e12650e558304702462553879b768b9184bbc0730b1a2564eb0'
+      );
+
+      // load stylesheet (deferred until full needjs has been loaded)
+      need(
+        {el:'style', type:'text/css', cb:function(){
+          // style sheet is loaded: display!
+          var fout = document.getElementById('fout');
+          fout.parentNode.removeChild(fout);
+        }},
+        ['//myCDN.com/css/style.css', '/css/style.css'],
+        '297d814689043f9716f98901d06ac30de557664f5361c3b06fb7984fbb605e60'
+      );
+    </script>
+  </head>
+  <body>
+    <h1>
+      Hello
+    </h1>
+    If you can see this, your browser has meanwhile fetched the CSS stylesheet,
+    verified its integrity,  and executed a javascript callback to remove a
+    <code>display: none!important;</code>
+    style.
+  </body>
+</html>
+```
+
+
 
 Alternatives
 ------------
