@@ -24,7 +24,7 @@ your site.
 Statistics
 ----------
 
-Minified and gzipped size is `1159` bytes (auto-updated on Fri May  2 11:06:35 UTC 2014), after removal of development support such as console.log output. If that is too much for you, there is a bootstrap version that minifies and gzips down to `777` bytes whilst compromising only on speed, not on functionality (invocations using unsupported functionality are deferred and should work as soon as the full version has been loaded).
+Minified and gzipped size is `1159` bytes (auto-updated on Fri May  2 11:27:19 UTC 2014), after removal of development support such as console.log output. If that is too much for you, there is a bootstrap version that minifies and gzips down to `777` bytes whilst compromising only on speed, not on functionality (invocations using unsupported functionality are deferred and should work as soon as the full version has been loaded).
 
 The minified scripts are not included to discourage production use:
 This script is largely untested and I wish to encourage you to obtain
@@ -122,9 +122,11 @@ Example of integrity-checking CSS loading in a HTML document. Implement fout-lik
 
 Example of using the bootstrap version, to minimize the amount of
 bytes that need to be served from your trusted server hosting the html
-document itself and bootstrap.min.js. This example loads the full
-version of needjs, a custom javacript file, and a stylesheet, all from
-potentially untrusted external sources:
+document itself and bootstrap.min.js. This example loads a custom
+javascript file `my.js`, which can be hosted externally due to
+integrity-verified loading. Calls to needjs to load other resources,
+including a CSS stylesheet and the full version of needjs to support
+loading the stylesheet, have been moved to `my.js`.
 ```html
 <!DOCTYPE html>
 <html>
@@ -134,32 +136,9 @@ potentially untrusted external sources:
     </style>
     <script src="/js/bootstap.min.js"></script>
     <script>
-      // start loading full version of needjs
-      need(
-        ['//myCDN-1.com/js/need.min.js', '//myCDN-2.com/js/need.min.js'],
-        'fb3be500756eb251f24e6bc9caecfd54e4afb0342fbdbd38a3dc3faa93e18634'// SHA256 of need.min.js
-      );
-
-      // start loading your site's custom javascript
-      // (note you could incorporate all other calls to need(..),
-      //  including---as long as here you do not use the optional first
-      //  parameter to need(..)---the one to load the full version, 
-      //  into that javascript file, to enable easy minification of all 
-      //  this and to move even more to your less trusted external domains)
       need(
         ['//myCDN-1.com/js/my.js', '//myCDN-2.com/js/my.js'],
-        '33171773db3c2e12650e558304702462553879b768b9184bbc0730b1a2564eb0'
-      );
-
-      // load stylesheet (deferred until full needjs has been loaded)
-      need(
-        {el:'style', type:'text/css', cb:function(){
-          // style sheet is loaded: display!
-          var fout = document.getElementById('fout');
-          fout.parentNode.removeChild(fout);
-        }},
-        ['//myCDN-1.com/css/style.css', '//myCDN-2.com/css/style.css'],
-        '297d814689043f9716f98901d06ac30de557664f5361c3b06fb7984fbb605e60'
+        'TO DO: Replace with sha256 hash of my.js before testing.'
       );
     </script>
   </head>
@@ -168,14 +147,48 @@ potentially untrusted external sources:
       Hello
     </h1>
     If you can see this, your browser has meanwhile fetched the CSS stylesheet,
-    verified its integrity,  and executed a javascript callback to remove a
+    verified its integrity, and executed a javascript callback to remove a
     <code>display: none!important;</code>
     style.
   </body>
 </html>
 ```
 
+```javascript
+// my.js,
+// to be hosted at myCDN-1.com/js/my.js and myCDN-2.com/js/my.js
 
+// start loading the full version of needjs
+// this can be done by the bootstrap version that only supports
+// calls with the URL array and the hash parameters.
+need(
+    [
+        '//myCDN-1.com/js/need.min.js',
+        '//myCDN-2.com/js/need.min.js'
+    ],
+        'fb3be500756eb251f24e6bc9caecfd54e4afb0342fbdbd38a3dc3faa93e18634'// SHA256 of need.min.js
+);
+
+// load stylesheet
+// (this will be deferred until the full needjs version has been 
+//  loaded because the bootstrap version does not support the
+//  optional first parameter used here)
+need(
+    {
+        el:'style', 
+        type:'text/css', 
+        cb:function(){
+            // style sheet is loaded: display!
+            var fout = document.getElementById('fout');
+            fout.parentNode.removeChild(fout);
+        }
+    },
+    ['//myCDN-1.com/css/style.css', '//myCDN-2.com/css/style.css'],
+    '297d814689043f9716f98901d06ac30de557664f5361c3b06fb7984fbb605e60'
+);
+
+// insert custom javascript here
+```
 
 Alternatives
 ------------
