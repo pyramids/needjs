@@ -3,7 +3,7 @@ needjs
 
 Needjs is an in-browser resource loader (for Javascript, CSS, etc.)
 with integrity checks, failover to additional sources, callback or
-synchronous operation, and transparent patching. The idea is allow
+synchronous operation, and transparent patching. The idea is to allow
 your website to utilize untrusted sources, such as public CDNs or
 servers not under your sole and complete control, without risking
 either getting undesired (and potentially malicious) content or
