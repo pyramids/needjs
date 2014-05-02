@@ -24,7 +24,7 @@ your site.
 Statistics
 ----------
 
-Minified and gzipped size is `1159` bytes (auto-updated on Fri May  2 10:54:28 UTC 2014), after removal of development support such as console.log output. If that is too much for you, there is a bootstrap version that minifies and gzips down to `777` bytes whilst compromising only on speed, not on functionality (invocations using unsupported functionality are deferred and should work as soon as the full version has been loaded).
+Minified and gzipped size is `1159` bytes (auto-updated on Fri May  2 11:06:35 UTC 2014), after removal of development support such as console.log output. If that is too much for you, there is a bootstrap version that minifies and gzips down to `777` bytes whilst compromising only on speed, not on functionality (invocations using unsupported functionality are deferred and should work as soon as the full version has been loaded).
 
 The minified scripts are not included to discourage production use:
 This script is largely untested and I wish to encourage you to obtain
@@ -158,7 +158,7 @@ potentially untrusted external sources:
           var fout = document.getElementById('fout');
           fout.parentNode.removeChild(fout);
         }},
-        ['//myCDN.com/css/style.css', '/css/style.css'],
+        ['//myCDN-1.com/css/style.css', '//myCDN-2.com/css/style.css'],
         '297d814689043f9716f98901d06ac30de557664f5361c3b06fb7984fbb605e60'
       );
     </script>
