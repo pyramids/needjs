@@ -26,7 +26,7 @@ html document or by loading it from your own server(s).
 Statistics
 ----------
 
-Minified and gzipped size is `1157` bytes (auto-updated on Mon May  5 11:09:48 UTC 2014), after removal of development support such as console.log output. If that is too much for you, there is a bootstrap version that minifies and gzips down to `777` bytes whilst compromising only on speed, not on functionality (invocations using unsupported functionality are deferred and should work as soon as the full version has been loaded).
+Minified and gzipped size is `1160` bytes (auto-updated on Mon May  5 11:27:27 UTC 2014), after removal of development support such as console.log output. If that is too much for you, there is a bootstrap version that minifies and gzips down to `777` bytes whilst compromising only on speed, not on functionality (invocations using unsupported functionality are deferred and should work as soon as the full version has been loaded).
 
 The minified scripts are not included to discourage production use:
 This script is largely untested and I wish to encourage you to obtain
@@ -70,14 +70,19 @@ Slightly advanced example:
 ```javascript
 // Load JSON polyfill asynchronously, if the browser requires it.
 // Try public CDNs first, but insist on getting the exact content you expect,
-// falling back to your own server's copy if necessary.
-// Make a callback when the polyfill is ready, only if it was indeed loaded.
+// falling back to your own CDN and then your own server's copy if necessary.
+// Only for your own server's copy, disable the integrity check ('' marker).
+// If even that fails, suppress the exception otherwise thrown (0 marker).
+// Finally, make a callback when the polyfill is ready, but only if it was 
+// indeed loaded, not if the polyfill wasn't needed in the first place
 window.JSON || need(
     function() { alert('Try again: Your very old browser just learnt JSON.') },
     [
         "//cdnjs.cloudflare.com/ajax/libs/json3/3.3.1/json3.min.js",
         "//cdn.jsdelivr.net/json3/3.3.1/json3.min.js",
-        "/local/fallback/json3.min.js"
+        "//your.cdn.com/json3.min.js",
+        "/local/fallback/json3.min.js", '',
+	0
     ],
     "ad45931efa6cdd31ebae327b2313915473ddfb24ef144ef491c939aa4c24d832"
 );
@@ -186,7 +191,7 @@ need(
         '//myCDN-1.com/js/need.min.js',
         '//myCDN-2.com/js/need.min.js'
     ],
-    'dec1da4dddddbdcd341cff905509b187c576aa9237a13b4aa3819e454e320701'// SHA256 of need.min.js
+    '178f12b4c608d5b4b831b6893677b2c03cf1e0c7decea89e250c4a7e7d7ea0e9'// SHA256 of need.min.js
 );
 
 // load stylesheet
