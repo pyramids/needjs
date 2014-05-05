@@ -46,6 +46,24 @@
 	setTimeout(fastOkay, 30);
     };
 
+    function doWhen(cond, callback) {
+	if ('string' === typeof cond) {
+	    cond = function() { return eval(cond); }
+	}
+	var cnt=0;
+	var testCb = function() {
+	    if (cond()) {
+		callback();
+	    } else {
+		cnt++;
+		if (cnt < 100) {
+		    setTimeout(testCb, 20);
+		};
+	    };
+	};
+	setTimeout(testCb, 30);
+    }
+
 
     // create a callback function to be used with QUnit's asyncTest(..)
     // cond: first parameter to QUnit's ok(..); will be eval(..)'d if a string
@@ -90,17 +108,54 @@
 	return window.accounting;
     };
 
-    function runTests() {
+    function runTests(needVersion, bootstrap, name) {
+
+	window.needSHA256 = needVersion.needSHA256;
+	window.need = needVersion.need;
+
+	// tests suitable for all versions
+	asyncTest('load script, correct hash', function() {
+	    expect( 1 );
+	    cleanJs();
+	    need(
+		[jsURL],
+		jsSHA256
+	    );
+	    doWhen(
+		jsIsPresent,
+		okCallback('jsIsPresent()', 'script loaded', true)
+	    );
+	});
+	
+	asyncTest( 'exception after failed fallbacks, no callback', function() {
+	    expect( 1 );
+	    cleanJs();
+	    assertNeedException();
+	    need(
+		[jsBadContent, jsBadContent2],
+		jsSHA256
+	    );
+	});
+
+	// the following tests all make use of the callback parameter,
+	// which is unavailable in the bootstrap version
+	// so add a bootstrap-only tests as replacement, then quit
+	if (bootstrap) {
 
 /*
-	window.onerror=function(a,b,c) {
-	    ok(false, "window.onerror: "+a+". "+b+". "+c+".");
-	    start();
-	    return true;
-	};
-*/
+	    // this can fail due to CORS when using the file:// protocol
+	    asyncTest('bootstrap (loading need.min.js)', function() {
+		need(['need.min.js'],'ce119b39a138d787392db2112271b85abbae207424a26248d5a260505e5a5282');
+		doWhen(
+		    function() { return window.need != needVersion.need; }, 
+		    okCallback('true', 'bootstrap attempt changed window.need', true)
+		);
+	    });
+	    */
+	    return;
+	}
 
-	asyncTest( 'callback function', function() {
+	asyncTest('callback function', function() {
 	    expect( 1 );
 	    cleanJs();
 	    need(
@@ -162,6 +217,7 @@
 	    );
 	});
 
+/*
 	asyncTest( 'exception after failed fallbacks, no callback', function() {
 	    expect( 1 );
 	    cleanJs();
@@ -171,6 +227,7 @@
 		jsSHA256
 	    );
 	});
+*/
 
 	asyncTest( 'honor 0 flag: no exception after failed fallbacks', function() {
 	    expect( 1 );
@@ -260,5 +317,30 @@
 
     // prime cache to speed up other tests
  //   need(function(){ cleanJs(); runTests(); }, [jsURL],jsSHA256);
-    runTests();
+
+
+    module('Boostrap version bootstrap.min.js');
+    runTests(needjsBootstrap, true, 'bootstrap.js');
+
+
+    var needjsNeedDevStarted = 0;
+    QUnit.done(function() {
+	if (needjsNeedDevStarted) {
+	    return;
+	}
+	needjsNeedDevStarted = 1;
+	module('Development version need.js');
+	runTests(needjsNeedDev, false, 'need.js');
+
+	var needjsNeedMinStarted = 0;
+	QUnit.done(function() {
+	    if (needjsNeedMinStarted) {
+		return;
+	    }
+	    needjsNeedMinStarted = 1;
+	    module('Production version need.min.js');
+	    runTests(needjsNeedMin, false, 'need.min.js');
+	});
+    });
+
 })();

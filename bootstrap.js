@@ -117,7 +117,9 @@ window.need = function(urls, hash, extra) {
 	// we only need to call need(..) again because the urls array
 	// gets shifted and hence has already been advanced to the
 	// next fallback url by the time this might execute
-	need(urls,hash)
+	if (urls[0]) {
+	    need(urls,hash)
+	} else { throw 'need.js: no source for hash ' + hash; }
     };
 
     xhr.ontimeout = fallback;
@@ -132,10 +134,10 @@ window.need = function(urls, hash, extra) {
 		    // window context (that is the global context for
 		    // browsers)
 		    eval.call(window, this.responseText)
+		    return
 		}
-	    } else {
-		fallback()
 	    }
+	    fallback()
 	}
     };
 
@@ -146,6 +148,6 @@ window.need = function(urls, hash, extra) {
     // http://www.html5rocks.com/en/tutorials/file/xhr2/
     xhr.overrideMimeType('text/plain; charset=x-user-defined');
 
-    xhr.open('GET',urls.shift,callback!==0);
+    xhr.open('GET',urls.shift(),true);
     xhr.send();
 }

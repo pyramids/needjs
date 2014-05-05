@@ -10,7 +10,7 @@ SHA256=`sha256sum need.min.js |cut -d ' ' -f 1`
 
 MESSAGE_MIN="Minified and gzipped size is \`$SIZE_MIN\` bytes (auto-updated on $DATE), after removal of development support such as console.log output."
 
-MESSAGE_BOOT="If that is too much for you, there is a bootstrap version that minifies and gzips down to \`$BOOTSTRAP_SIZE_MIN\` bytes whilst compromising only on speed, not on functionality (invocations using unsupported functionality are deferred and should work as soon as the full version has been loaded)."
+MESSAGE_BOOT="If that is too much for you, there is a bootstrap version that minifies and gzips down to \`$BOOTSTRAP_SIZE_MIN\` bytes whilst compromising only on speed, not on functionality (invocations with the optional callback parameter are deferred and should work as soon as the full version has been loaded)."
 
 #MESSAGE="Without this removal and slightly less agressive minification/gzipping, the size would be \`$SIZE\` bytes."
 
@@ -19,3 +19,7 @@ sed -i "/Minified and gzipped size/c\\$MESSAGE_MIN $MESSAGE_BOOT" README.md
 
 SHA256MSG="    '"$SHA256"'\\/\\/ SHA256 of need.min.js"
 sed -i "/SHA256 of need.min.js/c\\$SHA256MSG" README.md
+
+
+BOOTSTRAP="\t\tneed(['need.min.js'],'"$SHA256"');"
+sed -i "/\\['need.min.js'\\],'/c\\$BOOTSTRAP" tests.js
