@@ -1,13 +1,19 @@
 
 (function(){
 
-    function assertNeedException(timeout) {
+    function assertNeedException(timeout, anyException) {
 	var okMsg;
 	var oldWindowOnerror = window.onerror;
+	var any=false;
+	if (anyException) {
+	    any = true;
+	}
+
 	window.onerror = function(errorMsg, url, lineNumber) {
 	    if (
 		/*(url.indexOf('need.') != -1) && */
-		    (errorMsg.indexOf('need.js: no source for hash ') != -1)
+//		(anyException || (errorMsg.indexOf('need.js: no source for hash ') != -1))
+		(any || (errorMsg.indexOf('need.js: no source for hash ') != -1))
 	    ) {
 		window.onerror = oldWindowOnerror;
 		oldWindowOnerror = 0;
@@ -25,6 +31,7 @@
 		    window.onerror = oldWindowOnerror;
 		    oldWindowOnerror = 0;
 		    ok( false, 'failed to throw expected exception');
+		    start();
 		};
 	    },
 	    timeout || 
@@ -46,7 +53,7 @@
 	setTimeout(fastOkay, 30);
     };
 
-    function doWhen(cond, callback) {
+    function doWhen(cond, callback) { (function(){	
 	if ('string' === typeof cond) {
 	    cond = function() { return eval(cond); }
 	}
@@ -62,7 +69,7 @@
 	    };
 	};
 	setTimeout(testCb, 30);
-    }
+    })(); }
 
 
     // create a callback function to be used with QUnit's asyncTest(..)
@@ -130,7 +137,8 @@
 	asyncTest( 'exception after failed fallbacks, no callback', function() {
 	    expect( 1 );
 	    cleanJs();
-	    assertNeedException();
+	    // for the bootstrap version, accept any exception
+	    assertNeedException(1000, bootstrap);
 	    need(
 		[jsBadContent, jsBadContent2],
 		jsSHA256
@@ -333,14 +341,19 @@
 	runTests(needjsNeedDev, false, 'need.js');
 
 	var needjsNeedMinStarted = 0;
-	QUnit.done(function() {
-	    if (needjsNeedMinStarted) {
-		return;
-	    }
-	    needjsNeedMinStarted = 1;
-	    module('Production version need.min.js');
-	    runTests(needjsNeedMin, false, 'need.min.js');
-	});
+	setTimeout(
+	    function() {
+		QUnit.done(function() {
+		    if (needjsNeedMinStarted) {
+			return;
+		    }
+		    needjsNeedMinStarted = 1;
+		    module('Production version need.min.js');
+		    runTests(needjsNeedMin, false, 'need.min.js');
+		});
+	    },
+	    2000
+	);
     });
 
 })();
