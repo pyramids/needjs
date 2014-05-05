@@ -117,9 +117,16 @@ window.need = function(urls, hash, extra) {
 	// we only need to call need(..) again because the urls array
 	// gets shifted and hence has already been advanced to the
 	// next fallback url by the time this might execute
-	if (urls[0]) {
+	//
+	// NOTE: Without the uncommented code, the asynchronous
+	//       exception thrown when all sources fail becomes
+	//       somewhat cryptic and likely browser-dependent, as
+	//       loading from an undefined(?) url may trigger an
+	//       CORS-like security exception rather than something
+	//       actually suggestive of the real problem
+//	if (urls[0]) {
 	    need(urls,hash)
-	} else { throw 'need.js: no source for hash ' + hash; }
+//	} else { throw 'need.js: no source for hash ' + hash; }
     };
 
     xhr.ontimeout = fallback;
