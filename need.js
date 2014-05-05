@@ -144,10 +144,10 @@
 
   Open Namespace Pollution Issue:
 
-    This script creates need(..) and needSha256(..), the latter of
+    This script creates need(..) and needSHA256(..), the latter of
     which could easily be hidden in a closure. It is not because its
     presence may be convenient as a fallback eventually (currently,
-    until the utf8 encoding issue is resolved, consider the needSha256
+    until the utf8 encoding issue is resolved, consider the needSHA256
     functionality subject to change as in the future it may or may not
     utf8-encode its argument before calculating the hash).
 
@@ -175,7 +175,7 @@
 The above copyright notice serves as a permissions notice also, and may optionally be included in copies or portions of the work.
 The work is provided “as is”, without warranty or support, express or implied. The author(s) are not liable for any damages, misuse, or other claim, whether from or as a consequence of usage of the given work.
 */
-window.needSha256 = (function(){
+window.needSHA256 = (function(){
   // Eratosthenes seive to find primes up to 311 for magic constants. This is why SHA256 is better than SHA1
   var i=1,
       j,
@@ -339,7 +339,7 @@ window.need = (function(callback, urls, hash) {
 
 	    // only bother calculating the hash if there is no ''
 	    // marker indicating that we should ignore the hash
-	var actualHash = (urls[1] === '') ? '' : window.needSha256(binStr);
+	var actualHash = (urls[1] === '') ? '' : window.needSHA256(binStr);
 
 	// Missing hash?
 	// In the development version only:
@@ -350,7 +350,7 @@ window.need = (function(callback, urls, hash) {
 		// no hash given:
 		// go ahead in development version only; 
 		// advise on how to proceed
-		actualHash = actualHash || window.needSha256(binStr);
+		actualHash = actualHash || window.needSHA256(binStr);
 		hash = actualHash;
 		log('called without hash for \''+urls[0]+'\'; use \''+actualHash+'\')');
 	    }
