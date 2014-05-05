@@ -18,7 +18,7 @@ against external sources injecting malicious code into your site,
 consider that you will need to perform integrity-checking, e.g. by
 using needjs with a non-empty hash parameter, for _all_ untrusted
 content. That includes what you may mistakenly assume to be harmless
-non-code, non-content but what user browsers' may interprete
+non-code, non-content but what user browsers' may interpret
 differently. Finally, using needjs for this task requires that you
 load needjs itself from a safe source, e.g. by inlining it into your
 html document or by loading it from your own server(s).
