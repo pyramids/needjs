@@ -7,9 +7,11 @@
   print "// dev-only: " $0;
   getline;
   while (index($0, "/*dev-only-stop*/") == 0) {
-      getline;
       print "// dev-only: " $0;
+      getline;
   }  
+  print "// dev-only: " $0;
+  getline;
 }
 
 /\/\*dev-only\*\// { 
