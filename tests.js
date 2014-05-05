@@ -122,7 +122,7 @@
 
 	// tests suitable for all versions
 	asyncTest('load script, correct hash', function() {
-	    expect( 1 );
+	    expect( 1 + 1 );
 	    cleanJs();
 	    need(
 		[jsURL],
@@ -130,13 +130,18 @@
 	    );
 	    doWhen(
 		jsIsPresent,
-		okCallback('jsIsPresent()', 'script loaded', true)
+		function() {
+		    okCallback('jsIsPresent()', 'script loaded', true)();
+		    cleanJs();
+		    ok( !jsIsPresent(), 'script unloaded (affects later tests)' );
+		}
 	    );
 	});
 	
 	asyncTest( 'exception after failed fallbacks, no callback', function() {
-	    expect( 1 );
+	    expect( 1+1 );
 	    cleanJs();
+	    ok( !jsIsPresent(), 'test script not present' );
 	    // for the bootstrap version, accept any exception
 	    assertNeedException(1000, bootstrap);
 	    need(
