@@ -26,7 +26,7 @@ html document or by loading it from your own server(s).
 Statistics
 ----------
 
-Minified and gzipped size is `1160` bytes (auto-updated on Mon May  5 11:27:27 UTC 2014), after removal of development support such as console.log output. If that is too much for you, there is a bootstrap version that minifies and gzips down to `777` bytes whilst compromising only on speed, not on functionality (invocations using unsupported functionality are deferred and should work as soon as the full version has been loaded).
+Minified and gzipped size is `1160` bytes (auto-updated on Mon May  5 15:00:50 UTC 2014), after removal of development support such as console.log output. If that is too much for you, there is a bootstrap version that minifies and gzips down to `777` bytes whilst compromising only on speed, not on functionality (invocations using unsupported functionality are deferred and should work as soon as the full version has been loaded).
 
 The minified scripts are not included to discourage production use:
 This script is largely untested and I wish to encourage you to obtain

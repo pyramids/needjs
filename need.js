@@ -343,6 +343,7 @@ window.need = (function(callback, urls, hash) {
 		// no hash given:
 		// go ahead in development version only; 
 		// advise on how to proceed
+		actualHash = actualHash || window.needSha256(binStr);
 		hash = actualHash;
 		log('called without hash for \''+urls[0]+'\'; use \''+actualHash+'\')');
 	    }
