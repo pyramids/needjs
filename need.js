@@ -325,10 +325,14 @@ window.need = (function(callback, urls, hash) {
 	// TODO: Are there common sh256 libraries/APIs we should test
 	//       for and use for possibly improved performance?  
 	//
-	//       Polycrypt, crypto-js, ...: likely not significantly faster
+	//       Polycrypt, crypto-js, ...: ?
 	//       Web Crypto API: Maybe we should...
-	var actualHash = window.needSha256(binStr);
-
+	var actualHash;
+	if (urls[1] !== '') {
+	    // only bother calculating the hash if there is no ''
+	    // marker indicating that we should ignore the hash
+	    actualHash = window.needSha256(binStr);
+	};
 
 	// Missing hash?
 	// In the development version only:
