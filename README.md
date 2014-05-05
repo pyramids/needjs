@@ -26,7 +26,7 @@ html document or by loading it from your own server(s).
 Statistics
 ----------
 
-Minified and gzipped size is `1159` bytes (auto-updated on Fri May  2 11:40:21 UTC 2014), after removal of development support such as console.log output. If that is too much for you, there is a bootstrap version that minifies and gzips down to `777` bytes whilst compromising only on speed, not on functionality (invocations using unsupported functionality are deferred and should work as soon as the full version has been loaded).
+Minified and gzipped size is `1157` bytes (auto-updated on Mon May  5 11:09:48 UTC 2014), after removal of development support such as console.log output. If that is too much for you, there is a bootstrap version that minifies and gzips down to `777` bytes whilst compromising only on speed, not on functionality (invocations using unsupported functionality are deferred and should work as soon as the full version has been loaded).
 
 The minified scripts are not included to discourage production use:
 This script is largely untested and I wish to encourage you to obtain
@@ -35,16 +35,34 @@ the maximum debug information. Please contribute bug fixes.
 Example Usage
 -----
 
-Simple example:
+Simple example to be used with the development version only:
 ```javascript
 // Load a javascript file, with no integrity check
 // NOTE: If you use the development version (the non-minified need.js
 //       in the github repository), the correct hash will be logged via
 //       console.log(..). You can then easily add integrity checking by
 //       appending the hash as an additional parameter to need(..).
+//       To activate integrity-checking with the development version,
+//       a hash must be supplied.
+//
+//       With the minified (production) version, omitting the hash
+//       parameter is insufficient to turn off integrity-checking.
+//       You need to append '' as extra url behind every url you do
+//       not want to be integrity-checked (which here, against an
+//       undefined hash, would fail).
 need([
         "//cdnjs.cloudflare.com/ajax/libs/json3/3.3.1/json3.min.js",
         "//cdn.jsdelivr.net/json3/3.3.1/json3.min.js"
+]);
+```
+
+Same simple example, adjusted to work with the minified (production) version of needjs:
+```javascript
+// Load a javascript file, with no integrity check
+// The "" markers behind every url are required to turn off the integrity check
+need([
+        "//cdnjs.cloudflare.com/ajax/libs/json3/3.3.1/json3.min.js", "",
+        "//cdn.jsdelivr.net/json3/3.3.1/json3.min.js", ""
 ]);
 ```
 
@@ -168,7 +186,7 @@ need(
         '//myCDN-1.com/js/need.min.js',
         '//myCDN-2.com/js/need.min.js'
     ],
-    'fb3be500756eb251f24e6bc9caecfd54e4afb0342fbdbd38a3dc3faa93e18634'// SHA256 of need.min.js
+    'dec1da4dddddbdcd341cff905509b187c576aa9237a13b4aa3819e454e320701'// SHA256 of need.min.js
 );
 
 // load stylesheet

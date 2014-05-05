@@ -259,35 +259,46 @@ window.needSha256 = (function(){
 window.need = (function(callback, urls, hash) {
     "use strict";
 
-//    if (!(urls && urls.push)) {
     if (callback.push) {
-	// expected array urls not found,
+	// callback appears to be the array parameter urls
 	// so assume that the optional parameter callback is missing
 	hash = urls;
 	urls = callback;
 	callback = '';
     };
 
-    /*dev-only-start*/
-    var log = function(msg) { 
-	// try to log to console, if the browser lets us
-	try { 
-	    console.log('need.js:',msg);
-	} catch(e) {};
+    /*dev-only-start*/{
+	var log = function(msg) { 
+	    // try logging to the console, if the browser lets us
+	    try { 
+		console.log('need.js:',msg);
+	    } catch(e) {};
+	};
+    };/*dev-only-stop*/
+
+    if (urls[0] === '') {
+	// skip past an ignore-hash marker belonging to a previous URL
+	urls.shift();
     };
-    /*dev-only-stop*/
 
     if (urls[0] === 0) {
 	// we have reached a marker, the integer 0, given as next URL,
 	// indicating that the caller wishes us to fail silently rather
 	// than to throw an exception from asynchronously executed code
 
-	/*dev-only-start*/
-	log('silently failing for resource with hash '+hash);
-	/*dev-only-stop*/
+	/*dev-only-start*/{
+	    log('silently failing for resource with hash '+hash);
+	}/*dev-only-stop*/
 
 	return;
     };
+
+    if (urls.length === 0) {
+	// in normal use, this will occur if all given urls
+	// sequentially failed to provide data matching this hash
+	// (but it could also be that the user called us with no urls)
+	throw 'need.js: no source for hash ' + hash;
+    }
 
     var xhr=new XMLHttpRequest();
     xhr.open('GET',urls[0],callback!==0);
@@ -301,20 +312,12 @@ window.need = (function(callback, urls, hash) {
 	// with non-200 HTTP status code)
 	fallback = function() {};
 	
-	/*dev-only*/	log('failed to load ' + urls[0]);
+	/*dev-only-start*/{
+	    log('failed to load ' + urls[0]);
+	}/*dev-only-stop*/
 
-	if (urls.length > 1) {
-	    // there are fallback urls remaining:
-	    // remove the on that just failed, urls[0], and try again
-	    window.need(callback, urls.slice(1), hash);
-	} else {
-	    // we are unable to load the dependency: throw an exception
-	    // (which can be "caught" in the window.onerror handler)
-	    //
-	    // NOTE: You can prevent this behavior by appending the
-	    //       urls array with the integer 0.
-	    throw 'need.js: no fallback after ' + urls[0] + ' for hash ' + hash;
-	};
+	// try the next url
+	window.need(callback, urls.slice(1), hash);
     };
     
     // check and evaluate javascript data in binStr (if and only if it has the correct SHA256 hash)
@@ -331,156 +334,153 @@ window.need = (function(callback, urls, hash) {
 	// In the development version only:
 	// Continue, logging the required hash via console.log
 
-	/*dev-only-start*/
-	if ('undefined' === typeof hash) {
-	    // no hash given:
-	    // go ahead in development version only; 
-	    // advise on how to proceed
-	    hash = actualHash;
-	    log('called without hash for \''+urls[0]+'\'; use \''+actualHash+'\')');
-	}
-	/*dev-only-stop*/
+	/*dev-only-start*/{
+	    if ('undefined' === typeof hash) {
+		// no hash given:
+		// go ahead in development version only; 
+		// advise on how to proceed
+		hash = actualHash;
+		log('called without hash for \''+urls[0]+'\'; use \''+actualHash+'\')');
+	    }
+	}/*dev-only-stop*/
 
-	if (hash != actualHash) {
-	    if (urls[1] === '') {
-		// we have an incorrect hash, but it is followed by an
-		// empty URL marker, indicating that we should trust
-		// this source despite the mismatch
-	    } else {
-		/*dev-only-start*/ 
+	if ((hash != actualHash) && (urls[1] !== '')) {
+	    // incorrect hash,
+	    // and not excempted by a '' marker as next url
+
+	    /*dev-only-start*/{
 		log('' + urls[0] + ' has incorrect hash ' + actualHash);
-		/*dev-only-stop*/
-
-		// TODO: Here some logging (to web server?) could be added
-		//       even for production use.  However, in many cases
-		//       the server logs will already show what is
-		//       happening due to the coming fallback request(s).
-		
-		fallback();
-
-		// important: abort (lest we inject the bad content)
-		return;
-	    };
+	    }/*dev-only-stop*/
+	    
+	    // TODO: Here some logging (to web server?) could be added
+	    //       even for production use.  However, in many cases
+	    //       the server logs will already show what is
+	    //       happening due to the coming fallback request(s).
+	    
+	    fallback();
+	    
+	    // important: abort (lest we inject the bad content)
+	    return;
 	};
+	
+	// TODO: Can we handle encodings other than utf8?  To
+	//       reliably form the hash, we had to override it but
+	//       now we need to interpret special charcters as
+	//       text.
 
-//	if (hash == actualHash) {
-	    // TODO: Can we handle encodings other than utf8?  To
-	    //       reliably form the hash, we had to override it but
-	    //       now we need to interpret special charcters as
-	    //       text.
 
-
-	    // Javascript injection, found at
-	    // http://stackoverflow.com/questions/6432984/adding-script-element-to-the-dom-and-have-the-javascript-run
-	    var el = callback.el || 'script';
-	    var s = document.createElement(el);
-	    s.type = callback.type || 'text/javascript';
-	    var cbAfter;
-	    try {
-		if ('object' === typeof callback) {
-		    if (callback.filter) {
-			binStr = callback.filter(binStr, actualHash, hash);
-			
-			// do not use this result if it is not a string
-			if ('string' !== typeof(binStr)) {
-			    /*dev-only-start*/
+	// Javascript injection, found at
+	// http://stackoverflow.com/questions/6432984/adding-script-element-to-the-dom-and-have-the-javascript-run
+	var el = callback.el || 'script';
+	var s = document.createElement(el);
+	s.type = callback.type || 'text/javascript';
+	var cbAfter;
+	try {
+	    if ('object' === typeof callback) {
+		if (callback.filter) {
+		    binStr = callback.filter(binStr, actualHash, hash);
+		    
+		    // do not use this result if it is not a string
+		    if ('string' !== typeof(binStr)) {
+			/*dev-only-start*/{
 			    log(
 				'callback.filter rejected content from '
-				+ urls[0]
+				    + urls[0]
 			    );
-			    /*dev-only-stop*/
+			}/*dev-only-stop*/
 
-			    // fallback to other sources
-			    fallback();
-
-			    // and abort lest we inject the returned
-			    // flag into the DOM
-			    return;
-			};
-		    };
-
-		    // proceed as if callback.cb had been passed as callback
-		    callback = callback.cb || '';
-		};
-		if (('string' === typeof callback) && (callback !== '')) {
-		    if (el === 'script') {
-			// inject a string given as callback directly
-			// into the loaded resource, to be executed
-			// outside any scoping if and when the loaded
-			// resource has executed without error
-			binStr = binStr + '\n;' + callback;
-		    } else {
-			// loaded resource is not a script, so the
-			// best we can do to honor it is to eval it
-			callback = function() { eval(callback); };
+			// fallback to other sources
+			fallback();
+			
+			// and abort lest we inject the returned
+			// flag into the DOM
+			return;
 		    };
 		};
-		if ('function' === typeof callback) {
-		    /*dev-only*/ //log('adding callback '+callback);
 
-		    // Microsoft's recommended pattern to work around the
-		    // lack of an onload event in IE <= 8, found at
-		    // http://msdn.microsoft.com/en-us/library/ie/hh180173(v=vs.85).aspx
-		    if((el !== 'script') && s.addEventListener) {
-			s.addEventListener('load',callback,!false);
-			/*dev-only-start*/
+		// proceed as if callback.cb had been passed as callback
+		callback = callback.cb || '';
+	    };
+	    if (('string' === typeof callback) && (callback !== '')) {
+		if (el === 'script') {
+		    // inject a string given as callback directly
+		    // into the loaded resource, to be executed
+		    // outside any scoping if and when the loaded
+		    // resource has executed without error
+		    binStr = binStr + '\n;' + callback;
+		} else {
+		    // loaded resource is not a script, so the
+		    // best we can do to honor it is to eval it
+		    callback = function() { eval(callback); };
+		};
+	    };
+	    if ('function' === typeof callback) {
+		// Microsoft's recommended pattern to work around the
+		// lack of an onload event in IE <= 8, found at
+		// http://msdn.microsoft.com/en-us/library/ie/hh180173(v=vs.85).aspx
+		if((el !== 'script') && s.addEventListener) {
+		    s.addEventListener('load',callback,!false);
+		    /*dev-only-start*/{
 			s.addEventListener('error',function(){
 			    log('error processing '+urls[0]);
 			},false);
-			/*dev-only-stop*/
-		    } else if((el !== 'script') && s.readyState) {
-			// deviating from Microsoft's recommendation,
-			// check that the readyState has changed all
-			// the way to 'complete' to avoid calling
-			// the callback early if any browser sends
-			// events for other ready states first
-			s.onreadystatechange = function() {
-			    if (s.readyState == 'complete') {
-				(callback)();
-			    };
-			};
-		    } else if (el === 'script') {
-			// fallback to polluting the global namespace
-			// (with a name including the very long and
-			// cryptic hash value, extremely unlikely to
-			// intefere with anything else)
-
-			// TODO: This does not work for non-script resources.
-			//       Consider checking and possibly calling directly.
-			var globalCallback = 'needcb' + hash;
-			binStr = binStr + '\n;' + globalCallback+'()';
-			window[globalCallback] = function() {
+		    }/*dev-only-stop*/
+		} else if((el !== 'script') && s.readyState) {
+		    // deviating from Microsoft's recommendation,
+		    // check that the readyState has changed all
+		    // the way to 'complete' to avoid calling
+		    // the callback early if any browser sends
+		    // events for other ready states first
+		    s.onreadystatechange = function() {
+			if (s.readyState == 'complete') {
 			    (callback)();
-			    delete window[globalCallback];
 			};
-		    } else {
-			// set flag to immitate the onload-like
-			// callback by having it called later
-			cbAfter = 1;
 		    };
+		} else if (el === 'script') {
+		    // fallback to polluting the global namespace
+		    // (with a name including the very long and
+		    // cryptic hash value, extremely unlikely to
+		    // intefere with anything else)
+		    
+		    // TODO: This does not work for non-script resources.
+		    //       Consider checking and possibly calling directly.
+		    var globalCallback = 'needcb' + hash;
+		    binStr = binStr + '\n;' + globalCallback+'()';
+		    window[globalCallback] = function() {
+			(callback)();
+			delete window[globalCallback];
+		    };
+		} else {
+		    // set flag to immitate the onload-like
+		    // callback by having it called later
+		    cbAfter = 1;
 		};
-		s.appendChild(document.createTextNode(binStr));
-		document.body.appendChild(s);
-		if (cbAfter) {
-		    // ultimate fallback for honoring the callback
-		    // parameter: execute, after a very long delay, the
-		    // callback meant to be called immediately after
-		    // the browser processed the new content (onload
-		    // event), instead of checking when it is really
-		    // ready (better late than never...)
-		    //
-		    // NOTE: This behaves differently from the
-		    //       intention behind the callback in many
-		    //       ways, such as not checking for successful
-		    //       or complete parsing.
-		    setTimeout(callback, 1000);
-		};
-	    } catch (e) {
-		/*dev-only-start*/
-		log('Error appending script from' + urls[0]+': '+e);
-		/*dev-only-stop*/
 	    };
-//        };
+	    s.appendChild(document.createTextNode(binStr));
+	    // TODO: Should we allow a choice between body and head?
+	    //       For scripts, body is probably the better choice
+	    //       For style sheets, standards call for head
+	    document.head.appendChild(s);
+	    //document.body.appendChild(s);
+	    if (cbAfter) {
+		// ultimate fallback for honoring the callback
+		// parameter: execute, after a very long delay, the
+		// callback meant to be called immediately after
+		// the browser processed the new content (onload
+		// event), instead of checking when it is really
+		// ready (better late than never...)
+		//
+		// NOTE: This behaves differently from the
+		//       intention behind the callback in many
+		//       ways, such as not checking for successful
+		//       or complete parsing.
+		setTimeout(callback, 1000);
+	    };
+	} catch (e) {
+	    /*dev-only-start*/{
+		log('Error appending script from' + urls[0]+': '+e);
+	    }/*dev-only-stop*/
+	};
     };
 
     // TODO: The following hack prevents any character encoding to
@@ -494,7 +494,10 @@ window.need = (function(callback, urls, hash) {
     if (callback!==0) {
 	// asynchronous case
 	xhr.onreadystatechange = function() {
+	    // wait until "DONE" status is reached,
+	    // rather than asynchronously processing partial responses
 	    if (this.readyState == 4) {
+		// only accept responses with a HTTP 200 status code
 		if (this.status == 200) {
 		    process(this.responseText);
 		} else {
