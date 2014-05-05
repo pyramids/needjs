@@ -26,7 +26,7 @@ html document or by loading it from your own server(s).
 Statistics
 ----------
 
-Minified and gzipped size is `1160` bytes (auto-updated on Mon May  5 15:00:50 UTC 2014), after removal of development support such as console.log output. If that is too much for you, there is a bootstrap version that minifies and gzips down to `777` bytes whilst compromising only on speed, not on functionality (invocations using unsupported functionality are deferred and should work as soon as the full version has been loaded).
+Minified and gzipped size is `1160` bytes (auto-updated on Mon May  5 17:01:50 UTC 2014), after removal of development support such as console.log output. If that is too much for you, there is a bootstrap version that minifies and gzips down to `777` bytes whilst compromising only on speed, not on functionality (invocations using unsupported functionality are deferred and should work as soon as the full version has been loaded).
 
 The minified scripts are not included to discourage production use:
 This script is largely untested and I wish to encourage you to obtain
@@ -191,7 +191,7 @@ need(
         '//myCDN-1.com/js/need.min.js',
         '//myCDN-2.com/js/need.min.js'
     ],
-    '178f12b4c608d5b4b831b6893677b2c03cf1e0c7decea89e250c4a7e7d7ea0e9'// SHA256 of need.min.js
+    'd050082ac469dfddfebab0dc17231853ded745eff8b4e9f3a21f3de7dc076fff'// SHA256 of need.min.js
 );
 
 // load stylesheet

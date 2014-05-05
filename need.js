@@ -293,15 +293,24 @@ window.need = (function(callback, urls, hash) {
 	return;
     };
 
-    if (urls.length === 0) {
+    /*
+    if (urls.length == 0) {
 	// in normal use, this will occur if all given urls
 	// sequentially failed to provide data matching this hash
 	// (but it could also be that the user called us with no urls)
 	throw 'need.js: no source for hash ' + hash;
     }
+*/
 
     var xhr=new XMLHttpRequest();
-    xhr.open('GET',urls[0],callback!==0);
+    if (urls[0]) {
+	xhr.open('GET',urls[0],callback!==0);
+    } else {
+	// in normal use, this will occur if all given urls
+	// sequentially failed to provide data matching this hash
+	// (but it could also be that the user called us with no urls)
+	throw 'need.js: no source for hash ' + hash;
+    }
 
     var fallback = function() {
 	// try again, with the first item of urls (the url that just
@@ -327,16 +336,14 @@ window.need = (function(callback, urls, hash) {
 	//
 	//       Polycrypt, crypto-js, ...: ?
 	//       Web Crypto API: Maybe we should...
-	var actualHash;
-	if (urls[1] !== '') {
+
 	    // only bother calculating the hash if there is no ''
 	    // marker indicating that we should ignore the hash
-	    actualHash = window.needSha256(binStr);
-	};
+	var actualHash = (urls[1] === '') ? '' : window.needSha256(binStr);
 
 	// Missing hash?
 	// In the development version only:
-	// Continue, logging the required hash via console.log
+	// Continue, logging the required hash log(..) to console.log
 
 	/*dev-only-start*/{
 	    if ('undefined' === typeof hash) {
@@ -354,7 +361,8 @@ window.need = (function(callback, urls, hash) {
 	    // and not excempted by a '' marker as next url
 
 	    /*dev-only-start*/{
-		log('' + urls[0] + ' has incorrect hash ' + actualHash);
+		log('' + urls[0] + ' has incorrect hash ' + actualHash
+		   + ' and instead of an empty string as ignore-hash flag, the next url is \"'+urls[1]+'\"');
 	    }/*dev-only-stop*/
 	    
 	    // TODO: Here some logging (to web server?) could be added
@@ -394,8 +402,9 @@ window.need = (function(callback, urls, hash) {
 			    );
 			}/*dev-only-stop*/
 
-			// fallback to other sources
-			fallback();
+			// do not fallback to other sources
+			// (since the filter _should_ reject them again anyways)
+			//fallback();
 			
 			// and abort lest we inject the returned
 			// flag into the DOM
