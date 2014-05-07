@@ -1,3 +1,4 @@
+
 needjs
 ======
 
@@ -27,7 +28,7 @@ Statistics
 ----------
 
 Minified and gzipped size is `1160` bytes (auto-updated on Wed May  7 10:26:29 UTC 2014), after removal of development support such as console.log output. If that is too much for you, there is a bootstrap version that minifies and gzips down to `793` bytes whilst compromising only on speed, not on functionality (invocations with the optional callback parameter are deferred and should work as soon as the full version has been loaded).
-However, there is a caveat in using the bootstrap version: None of the advanced functionality (using `''` or `0` as special flags in the URL list, omitting the hash value, etc.) are supported. To make use of them, you must remember to include a callback parameter, e.g. `{}`, to ensure that the bootstrap version defers the call for later, and you must also initiate loading of the full version for these calls to ever get executed.
+However, there is a caveat in using the bootstrap version: None of the advanced functionality (using `''` or `0` as special flags in the URL list, omitting the hash value, etc.) is supported. To make use of them, you must remember to include a callback parameter, e.g. `{}`, to ensure that the bootstrap version defers the call for later, and you must also initiate loading of the full version for these calls to ever get executed.
 
 The minified scripts are not included to discourage production use:
 This script is largely untested and I wish to encourage you to obtain
