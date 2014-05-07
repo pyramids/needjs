@@ -107,6 +107,15 @@
 	= 'https://cdn.jsdelivr.net/alertify.js/0.4.0rc1/alertify.min.js';
     var jsBadContent2
 	= 'https://cdn.jsdelivr.net/alertify.js/0.4.0rc1/alertify.js';
+    // a path that hopefully results in a "not found" condition
+    var urlNotFound
+	= 'https://cdn.jsdelivr.net/not/even/the/right/path-structure.sure.not';
+    // a url that does not resolve
+    var urlNoHost
+        = 'https://dlehforeuihfncrelncferoifheriuchnepofjer.not-even.a.top-level-domain';
+    // a url (localhost) that should resolve but time-out due to there not being a webserver (hopefully...)
+    var urlTimeOut
+	= 'https://0.0.0.1:81';
     var wrongHash = 'incorrect_and_even_invalid_hash';
     var cleanJs = function() {
 	window.accounting = null;
@@ -137,11 +146,10 @@
 		}
 	    );
 	});
-	
-	asyncTest( 'exception after failed fallbacks, no callback', function() {
-	    expect( 1+1 );
+
+	asyncTest( 'exception after fallbacks, no callback', function() {
+	    expect( 1 );
 	    cleanJs();
-	    ok( !jsIsPresent(), 'test script not present' );
 	    // for the bootstrap version, accept any exception
 	    assertNeedException(1000, bootstrap);
 	    need(
@@ -149,6 +157,85 @@
 		jsSHA256
 	    );
 	});
+
+	asyncTest('load script from third fallback url', function() {
+	    expect( 3 );
+	    cleanJs();
+	    ok( !jsIsPresent(), 'test script not initially present' );
+	    need(
+		[jsBadContent, jsBadContent2, jsURL],
+		jsSHA256
+	    );
+	    doWhen(
+		jsIsPresent,
+		function() {
+		    okCallback('jsIsPresent()', 'script loaded', true)();
+		    cleanJs();
+		    ok( !jsIsPresent(), 'script unloaded (affects later tests)' );
+		}
+	    );
+	});
+
+	// for some reason, the bootstrap version fails here,
+	// throwing (in iceweasel, at least) a ...BAD_URI... exception
+	/*bootstrap || */
+	asyncTest('load script after non-200 url', function() {
+	    expect( 3 );
+	    cleanJs();
+	    ok( !jsIsPresent(), 'test script not initially present' );
+	    need(
+		[urlNotFound, jsURL],
+		jsSHA256
+	    );
+	    doWhen(
+		jsIsPresent,
+		function() {
+		    okCallback('jsIsPresent()', 'script loaded', true)();
+		    cleanJs();
+		    ok( !jsIsPresent(), 'script unloaded (affects later tests)' );
+		}
+	    );
+	});
+
+	asyncTest('load script after non-existent url', function() {
+	    expect( 3 );
+	    cleanJs();
+	    ok( !jsIsPresent(), 'test script not initially present' );
+	    need(
+		[urlNoHost, jsURL],
+		jsSHA256
+	    );
+	    doWhen(
+		jsIsPresent,
+		function() {
+		    okCallback('jsIsPresent()', 'script loaded', true)();
+		    cleanJs();
+		    ok( !jsIsPresent(), 'script unloaded (affects later tests)' );
+		}
+	    );
+	});
+
+	
+	  // bad idea: with current IP (localhost),
+	  // there's no timeout---instead, instant "port closed" reply(?)
+	asyncTest('load script after time-out url', function() {
+	    expect( 3 );
+	    cleanJs();
+	    ok( !jsIsPresent(), 'test script not initially present' );
+	    need(
+		[urlTimeOut, jsURL],
+		jsSHA256
+	    );
+	    doWhen(
+		jsIsPresent,
+		function() {
+		    okCallback('jsIsPresent()', 'script loaded', true)();
+		    cleanJs();
+		    ok( !jsIsPresent(), 'script unloaded (affects later tests)' );
+		}
+	    );
+	});
+
 
 	// the following tests all make use of the callback parameter,
 	// which is unavailable in the bootstrap version
