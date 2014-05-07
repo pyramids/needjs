@@ -114,6 +114,37 @@ need({
 );
 ```
 
+Another advanced example, using a custom (and asynchronous)
+implementation of SHA256:
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="/js/need.js"></script>
+    <script src="/js/ryancdotorg/async-sha256-js.js"></scrip>
+    <script>
+      // use github.com/ryancdotorg/async-sha256-js
+      // as asynchronous SHA256 hash function
+      needSHA256 = (new AsyncSha256()).adigest;
+    </script>
+    <script>
+      // now use needjs with the improved user experience that comes
+      // with doing the grunt work asynchronously, suitable for the
+      // integrity-verified loading of a very large javascript library 
+      need(
+	[
+          '//cdn.jsdelivr.net/zxcvbn/1.0/zxcvbn.js',
+	  '//cdnjs.cloudflare.com/ajax/libs/zxcvbn/1.0/zxcvbn.js'
+	], 
+	'95b153f6259a67c3e0a86111d1d180ff1ba793ae8df2c232063350de31eaade1'
+      );
+    </script>
+  </head>
+  <!-- ... --!>
+</html>
+```
+
 Example of integrity-checking CSS loading in a HTML document. Implement fout-like control to prevent rendering unstyled content: After successful loading, remove a style that prevents the document to be displayed prior to that event.
 ```html
 <!DOCTYPE html>

@@ -102,6 +102,14 @@
 	= '1b1589c7a7e1338b07b9164daf283dd9f7cb658cba9752c2e872b813d3b7e5e4';
     var jsLength
 	= 3133;
+
+    var bigjsURL
+	= 'https://cdn.jsdelivr.net/zxcvbn/1.0/zxcvbn.js';
+    var bigjsURL2
+	= 'https://cdnjs.cloudflare.com/ajax/libs/zxcvbn/1.0/zxcvbn.js';
+    var bigjsSHA256
+        = '95b153f6259a67c3e0a86111d1d180ff1ba793ae8df2c232063350de31eaade1';
+
     // valid javascript soruce not triggering our jsIsPresent() detection
     var jsBadContent
 	= 'https://cdn.jsdelivr.net/alertify.js/0.4.0rc1/alertify.min.js';
@@ -123,6 +131,15 @@
     var jsIsPresent = function() {
 	return window.accounting;
     };
+
+    var needSHA256async = (function() {
+//	var aSha256 = new AsyncSha256();
+	// it so happens that AsyncSha256.adigest has the exact
+	// interface required for the window.needSHA256 function, so
+	// we can use it directly
+//	return aSha256.adigest;
+	return (new AsyncSha256()).adigest;
+    })();
 
     function runTests(needVersion, bootstrap, name) {
 
@@ -158,6 +175,59 @@
 	    );
 	});
 
+
+	asyncTest('large source (zxcvbn.js)', function() {
+	    expect( 2 );
+	    cleanJs();
+	    window.zxcvbn_load_hook = function() {
+		ok( window.zxcvbn , 'zxcvbn.js loaded.');
+		delete window.zxcvbn;
+		ok( !window.zxcvbn, 'zxcvbn.js removed.');
+		start();
+	    };
+	    need(
+		[bigjsURL],
+		bigjsSHA256
+	    );
+	});
+
+	if (!bootstrap) {
+	asyncTest('custom hash function (async-sha256.js)', function() {
+	    expect( 1 );
+	    cleanJs();
+	    var oldNeedSHA256 = window.needSHA256;
+	    window.needSHA256 = needSHA256async;
+	    need(
+		function(){
+		    window.needSHA256 = oldNeedSHA256;
+		    okCallback('jsIsPresent()', 'script loaded', true)();
+		}, 
+		[jsURL],
+		jsSHA256
+	    );
+	});
+
+
+	asyncTest('custom hash function, large source', function() {
+	    expect( 2 );
+	    cleanJs();
+	    var oldNeedSHA256 = window.needSHA256;
+	    window.needSHA256 = needSHA256async;
+
+	    window.zxcvbn_load_hook = function() {
+		window.needSHA256 = oldNeedSHA256;
+		ok( window.zxcvbn , 'zxcvbn.js loaded.');
+		delete window.zxcvbn;
+		ok( !window.zxcvbn, 'zxcvbn.js removed.');
+		start();
+	    };
+	    need(
+		[bigjsURL2],
+		bigjsSHA256
+	    );
+	});
+	};
+
 	asyncTest( 'exception after fallbacks, no callback', function() {
 	    expect( 1 );
 	    cleanJs();
@@ -180,9 +250,10 @@
 	    doWhen(
 		jsIsPresent,
 		function() {
-		    okCallback('jsIsPresent()', 'script loaded', true)();
+		    okCallback('jsIsPresent()', 'script loaded', !true)();
 		    cleanJs();
 		    ok( !jsIsPresent(), 'script unloaded (affects later tests)' );
+		    start();
 		}
 	    );
 	});
@@ -209,9 +280,10 @@
 	    doWhen(
 		jsIsPresent,
 		function() {
-		    okCallback('jsIsPresent()', 'script loaded', true)();
+		    okCallback('jsIsPresent()', 'script loaded', !true)();
 		    cleanJs();
 		    ok( !jsIsPresent(), 'script unloaded (affects later tests)' );
+		    start();
 		}
 	    );
 	});
@@ -227,9 +299,10 @@
 	    doWhen(
 		jsIsPresent,
 		function() {
-		    okCallback('jsIsPresent()', 'script loaded', true)();
+		    okCallback('jsIsPresent()', 'script loaded', !true)();
 		    cleanJs();
 		    ok( !jsIsPresent(), 'script unloaded (affects later tests)' );
+		    start();
 		}
 	    );
 	});
@@ -248,9 +321,10 @@
 	    doWhen(
 		jsIsPresent,
 		function() {
-		    okCallback('jsIsPresent()', 'script loaded', true)();
+		    okCallback('jsIsPresent()', 'script loaded', false)();
 		    cleanJs();
 		    ok( !jsIsPresent(), 'script unloaded (affects later tests)' );
+		    start();
 		}
 	    );
 	});

@@ -7,3 +7,8 @@ jsdox/*
 # starts to be useable
 *.min.js
 *.min.js.gz
+
+# do not include external files
+# (which you can download with `make download`)
+ext
+ext/*

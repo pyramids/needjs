@@ -28,6 +28,9 @@ bootstrap.min.js.gz: bootstrap.min.js
 README.md: need.min.js need.min.js.gz bootstrap.min.js.gz makestats
 	bash ./makestats
 
+download:
+	wget https://raw.githubusercontent.com/ryancdotorg/async-sha256-js/master/async-sha256.js
+	mv -f async-sha256.js ext/async-sha256.js
 
 clean:
 	rm -f *.min.js *.min.js.gz *~
