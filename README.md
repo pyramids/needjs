@@ -27,8 +27,8 @@ html document or by loading it from your own server(s).
 Statistics
 ----------
 
-Minified and gzipped size is `1156` bytes (auto-updated on Wed May  7 17:37:13 UTC 2014), after removal of development support such as console.log output. If that is too much for you, there is a bootstrap version that minifies and gzips down to `771` bytes whilst compromising only on speed, not on functionality (invocations with the optional callback parameter are deferred and should work as soon as the full version has been loaded).
-However, there is a caveat in using the bootstrap version: None of the advanced functionality (using `''` or `0` as special flags in the URL list, omitting the hash value, etc.) is supported. To make use of them, you must remember to include a callback parameter, e.g. `{}`, to ensure that the bootstrap version defers the call for later, and you must also initiate loading of the full version for these calls to ever get executed.
+Minified and gzipped size is `1156` bytes (auto-updated on Wed May  7 17:48:19 UTC 2014), after removal of development support such as console.log output. If that is too much for you, there is a bootstrap version that minifies and gzips down to `768` bytes whilst compromising only on speed, not on functionality (invocations with the optional callback parameter are deferred and should work as soon as the full version has been loaded).
+However, there is a caveat in using the bootstrap version: None of the advanced functionality (using `''` or `0` as special flags in the URL list, omitting the hash value, etc.) is supported. To make use of them, you must remember to trigger deferring, e.g. by including both a hash and a callback parameter, and be it `{}`, to ensure that the bootstrap version defers the call for later, and you must also initiate loading of the full version for these calls to ever get executed.
 
 The minified scripts are not included to discourage production use:
 This script is largely untested and I wish to encourage you to obtain

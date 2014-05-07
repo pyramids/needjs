@@ -107,8 +107,7 @@ need = function(urls, hash, extra) {
 
     /*dev-only*/ "use strict";
 
-//    if (extra || ('string' != typeof hash)) {
-    if (extra || (hash === undefined)) {
+    if (extra || !hash) {
 	// this minimalistic, bootstrapping version of need.js does
 	// not support anything other than 2 parameters: defer call
 	// until the full version has been loaded
