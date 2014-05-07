@@ -245,7 +245,7 @@
 /*
 	    // this can fail due to CORS when using the file:// protocol
 	    asyncTest('bootstrap (loading need.min.js)', function() {
-		need(['need.min.js'],'ce119b39a138d787392db2112271b85abbae207424a26248d5a260505e5a5282');
+		need(['need.min.js'],'dae251a13fc31f6063cdb31f38846b31750ac36f6a3bdd70c43d92b5e0233b70');
 		doWhen(
 		    function() { return window.need != needVersion.need; }, 
 		    okCallback('true', 'bootstrap attempt changed window.need', true)

@@ -175,7 +175,7 @@
 The above copyright notice serves as a permissions notice also, and may optionally be included in copies or portions of the work.
 The work is provided “as is”, without warranty or support, express or implied. The author(s) are not liable for any damages, misuse, or other claim, whether from or as a consequence of usage of the given work.
 */
-window.needSHA256 = (function(){
+needSHA256 = (function(){
   // Eratosthenes seive to find primes up to 311 for magic constants. This is why SHA256 is better than SHA1
   var i=1,
       j,
@@ -256,7 +256,7 @@ window.needSHA256 = (function(){
 
 
 
-window.need = (function(callback, urls, hash) {
+need = (function(callback, urls, hash) {
     "use strict";
 
     if (callback.push) {
@@ -326,7 +326,7 @@ window.need = (function(callback, urls, hash) {
 	}/*dev-only-stop*/
 
 	// try the next url
-	window.need(callback, urls.slice(1), hash);
+	need(callback, urls.slice(1), hash);
     };
     
     // check and evaluate javascript data in binStr (if and only if it has the correct SHA256 hash)
@@ -339,7 +339,7 @@ window.need = (function(callback, urls, hash) {
 
 	    // only bother calculating the hash if there is no ''
 	    // marker indicating that we should ignore the hash
-	var actualHash = (urls[1] === '') ? '' : window.needSHA256(binStr);
+	var actualHash = (urls[1] === '') ? '' : needSHA256(binStr);
 
 	// Missing hash?
 	// In the development version only:
@@ -350,7 +350,7 @@ window.need = (function(callback, urls, hash) {
 		// no hash given:
 		// go ahead in development version only; 
 		// advise on how to proceed
-		actualHash = actualHash || window.needSHA256(binStr);
+		actualHash = actualHash || needSHA256(binStr);
 		hash = actualHash;
 		log('called without hash for \''+urls[0]+'\'; use \''+actualHash+'\')');
 	    }
@@ -421,11 +421,25 @@ window.need = (function(callback, urls, hash) {
 		    // into the loaded resource, to be executed
 		    // outside any scoping if and when the loaded
 		    // resource has executed without error
-		    binStr = binStr + '\n;' + callback;
+		    binStr = binStr + ';' + callback;
 		} else {
-		    // loaded resource is not a script, so the
-		    // best we can do to honor it is to eval it
-		    callback = function() { eval(callback); };
+		    // loaded resource is not a script, so the best we
+		    // can do to honor it is to eval(..) it, with
+		    // scope changed to the global scope
+		    callback = function() {
+			// setTimeout(callback,0) has the desired
+			// effect of evaluating (callback) in the
+			// global scope, and it compresses neatly
+			// (since it is used elsewhere), with the only
+			// disadvantage being that a small extra delay
+			// is applied (typ. the maximum of 4ms and the
+			// time the browsers' event queue empties)
+			setTimeout(callback,0);
+			// eval only works in a global scope if we
+			// override the this object with the global
+			// object (window in browsers)
+			//eval.call(window, callback);
+		    };
 		};
 	    };
 	    if ('function' === typeof callback) {

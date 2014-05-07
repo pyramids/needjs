@@ -21,7 +21,7 @@
 The above copyright notice serves as a permissions notice also, and may optionally be included in copies or portions of the work.
 The work is provided “as is”, without warranty or support, express or implied. The author(s) are not liable for any damages, misuse, or other claim, whether from or as a consequence of usage of the given work.
 */
-window.needSHA256 = (function(){
+needSHA256 = (function(){
   // Eratosthenes seive to find primes up to 311 for magic constants. This is why SHA256 is better than SHA1
   var i=1,
       j,
@@ -101,10 +101,14 @@ window.needSHA256 = (function(){
 
 
 
-window.need = function(urls, hash, extra) {
+need = function(urls, hash, extra) {
+    // shave off a few bytes by using strict mode only in the
+    // development version
+
     /*dev-only*/ "use strict";
 
-    if (extra || ('string' != typeof hash)) {
+//    if (extra || ('string' != typeof hash)) {
+    if (extra || (hash === undefined)) {
 	// this minimalistic, bootstrapping version of need.js does
 	// not support anything other than 2 parameters: defer call
 	// until the full version has been loaded
@@ -112,8 +116,8 @@ window.need = function(urls, hash, extra) {
 	// use the knowledge that there will never be more than 3 arguments,
 	// and that (this) does not matter to need(..), to shave off a few
 	// bytes in calling window.need(..) with same arguments again
-	//setTimeout(function(){window.need.apply(this, arguments)},50);
-	setTimeout(function(){window.need(urls, hash, extra)},50);
+	//setTimeout(function(){need.apply(this, arguments)},20);
+	setTimeout(function(){need(urls, hash, extra)},20);
     }
 
     var xhr = new XMLHttpRequest();
@@ -142,11 +146,20 @@ window.need = function(urls, hash, extra) {
 	    if (this.status == 200) {
 		// process this.responseText: 
 		// check SHA256 and eval/inject or fallback to next url
-		if (hash === window.needSHA256(this.responseText)) {
+		if (hash === needSHA256(this.responseText)) {
 		    // execute the javascript code we loaded in the
 		    // window context (that is the global context for
 		    // browsers)
-		    eval.call(window, this.responseText);
+		    //eval.call(window, this.responseText);
+
+		    // alternative to eval(..): 
+		    // shave off a few bytes, plus give the browser's
+		    // event loop a chance to catch up after our
+		    // SHA256 calculation (minimizing the chance that
+		    // the user gets warned about a script becoming
+		    // unresponsive), at the expense of delaying
+		    // script execution slightly
+		    setTimeout(this.responseText,0);
 		    return;
 		}
 	    }
