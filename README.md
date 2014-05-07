@@ -122,7 +122,7 @@ implementation of SHA256:
 <html>
   <head>
     <script src="/js/need.js"></script>
-    <script src="/js/ryancdotorg/async-sha256-js.js"></scrip>
+    <script src="/js/ryancdotorg/async-sha256.js"></scrip>
     <script>
       // use github.com/ryancdotorg/async-sha256-js
       // as asynchronous SHA256 hash function
