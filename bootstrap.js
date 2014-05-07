@@ -51,12 +51,29 @@ needSHA256 = (function(){
 
   function SHA256(b){
     var HASH = H.slice(i=0),
+//
+// unescape(..) is DEPRECATED, so the following line could cause
+// problems in the future, see
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/unescape
+//
+// The combination unescape(encodeURI(DOMString) appears to be a hack
+// to do a conversion to 16-bit unicode encoding (as used in
+// DOMString). It is probably not needed anyways (here we are
+// concerned with the file as served to everybody with whatever
+// encoding we chose to request it for; proper character encoding will
+// only matter later for evaluating it).
+//
 //        s = unescape(encodeURI(b)), /* encode as utf8 */
-      s=b,
+        s=b,
         W = [],
         l = s.length,
         m = [],
         a, y, z;
+//
+// The following line has a problem for charCodes >= 0x80, which
+// should be (UTF8-) encoded into two bytes (or sometimes three?
+// DOMStrings have charCodes ranging from 0x00 to 0xFFFF)
+//
     for(;i<l;) m[i>>2] |= (s.charCodeAt(i) & 0xff) << 8*(3 - i++%4);
 
     l *= 8;

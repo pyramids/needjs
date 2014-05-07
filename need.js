@@ -168,6 +168,48 @@
 */
 
 
+/**
+ * window.needSHA256(binInput[, callback]) calculates the SHA256 hash
+ * of the DOMString (binInput). A DOMString is the default type used
+ * by XMLHttpRequest for its responseText.
+ *
+ * It can be implemented in
+ * either of two ways:
+ * 
+ * a) It can return a (ASCII or UTF8) string representation of the
+ * hexadecimal SHA256 hash of binInput
+ *
+ * or, at the implementor's choice,
+ *
+ * b) It can return a "falsy" value (one that evaluates as false,
+ * e.g. undefined, easily achieved by not explicitly returning
+ * anything). In this case, it *MUST* eventually call callback(hash)
+ * where hash is the string that would be returned in variant a).
+ *
+ * If the caller wishes for a uniform interface, the suggested way to
+ * achieve it is:
+ *
+ *   var hash = needSHA256(binInput, callback);
+ *   if (hash) setTimeout(callback(hash),0);
+ *
+ * The function is exposed to the global namespace (in browsers) to
+ * enable users to 
+ *
+ *   a) replace it with a better implementation on the fly, especially
+ *      if another one happens to become available anyways as other
+ *      libraries are loaded, or if extra functionality such as
+ *      asynchronous operation is required
+ *
+ *   b) access it in their own code, especially in projects that are
+ *      very size-constrained.
+ *
+ * At your discretion, you may of course decide that within your own
+ * project, you will guarantee that this function always uses the
+ * synchronous option for implementation.  Using another namespace for
+ * that would be a much safer option, though.
+ *
+ */
+
 // sha256 function from sha256.js
 // at https://github.com/jbt/js-crypto by James Taylor
 // license:
@@ -175,7 +217,7 @@
 The above copyright notice serves as a permissions notice also, and may optionally be included in copies or portions of the work.
 The work is provided “as is”, without warranty or support, express or implied. The author(s) are not liable for any damages, misuse, or other claim, whether from or as a consequence of usage of the given work.
 */
-needSHA256 = (function(){
+needSHA256 = window.needSHA256 || (function(){
   // Eratosthenes seive to find primes up to 311 for magic constants. This is why SHA256 is better than SHA1
   var i=1,
       j,
@@ -205,12 +247,29 @@ needSHA256 = (function(){
 
   function SHA256(b){
     var HASH = H.slice(i=0),
+//
+// unescape(..) is DEPRECATED, so the following line could cause
+// problems in the future, see
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/unescape
+//
+// The combination unescape(encodeURI(DOMString) appears to be a hack
+// to do a conversion to 16-bit unicode encoding (as used in
+// DOMString). It is probably not needed anyways (here we are
+// concerned with the file as served to everybody with whatever
+// encoding we chose to request it for; proper character encoding will
+// only matter later for evaluating it).
+//
 //        s = unescape(encodeURI(b)), /* encode as utf8 */
-      s=b,
+        s=b,
         W = [],
         l = s.length,
         m = [],
         a, y, z;
+//
+// The following line has a problem for charCodes >= 0x80, which
+// should be (UTF8-) encoded into two bytes (or sometimes three?
+// DOMStrings have charCodes ranging from 0x00 to 0xFFFF)
+//
     for(;i<l;) m[i>>2] |= (s.charCodeAt(i) & 0xff) << 8*(3 - i++%4);
 
     l *= 8;
@@ -267,14 +326,14 @@ need = (function(callback, urls, hash) {
 	callback = '';
     };
 
-    /*dev-only-start*/{
-	var log = function(msg) { 
+    /*dev-only-start*/
+	function log(msg) { 
 	    // try logging to the console, if the browser lets us
 	    try { 
 		console.log('need.js:',msg);
 	    } catch(e) {};
 	};
-    };/*dev-only-stop*/
+    /*dev-only-stop*/
 
     if (urls[0] === '') {
 	// skip past an ignore-hash marker belonging to a previous URL
@@ -293,16 +352,10 @@ need = (function(callback, urls, hash) {
 	return;
     };
 
-    /*
-    if (urls.length == 0) {
-	// in normal use, this will occur if all given urls
-	// sequentially failed to provide data matching this hash
-	// (but it could also be that the user called us with no urls)
-	throw 'need.js: no source for hash ' + hash;
-    }
-*/
+    var 
+      xhr=new XMLHttpRequest(),
+      binStr; // the raw (not charset-recoded, binary) data loaded
 
-    var xhr=new XMLHttpRequest();
     if (urls[0]) {
 	xhr.open('GET',urls[0],callback!==0);
     } else {
@@ -312,34 +365,87 @@ need = (function(callback, urls, hash) {
 	throw 'need.js: no source for hash ' + hash;
     }
 
-    var fallback = function() {
+    // TODO: The following hack prevents any character encoding to
+    //       affect what exactly we receive, but forcing utf8 instead
+    //       may be more appropriate here.
+
+    // Hack to pass bytes through unprocessed. Source:
+    // http://www.html5rocks.com/en/tutorials/file/xhr2/
+    xhr.overrideMimeType('text/plain; charset=x-user-defined');
+
+    if (callback!==0) {
+	// asynchronous case
+	xhr.onreadystatechange = function() {
+	    // wait until "DONE" status is reached,
+	    // rather than asynchronously processing partial responses
+	    if (this.readyState == 4) {
+		// only accept responses with a HTTP 200 status code
+		if (this.status == 200) {
+		    process();
+		} else {
+		    fallback();
+		};
+	    };
+	};
+    };
+    xhr.ontimeout = fallback;
+    xhr.onerror = fallback;
+    xhr.send();
+
+    if (callback===0) {
+	// synchronous case
+	process();
+    };
+
+
+    function fallback() {
 	// try again, with the first item of urls (the url that just
 	// failed) removed
 
 	// only do the following once, in case any browser triggers
 	// more than one error handler (ontimeout, onerrror, or load
 	// with non-200 HTTP status code)
-	fallback = function() {};
+	if (xhr) {
+	    xhr = 0;
+	    binStr = 0;
 	
-	/*dev-only-start*/{
-	    log('failed to load ' + urls[0]);
-	}/*dev-only-stop*/
+	    /*dev-only-start*/{
+		log('failed to load ' + urls[0]);
+	    }/*dev-only-stop*/
 
-	// try the next url
-	need(callback, urls.slice(1), hash);
+	    // try the next url
+	    need(callback, urls.slice(1), hash);
+	};
     };
-    
+
+    // process response:
+    // calculate SHA256 hash (possibly asynchronously), if required,
+    // the call finish(hash)
+    function process() {
+	binStr = xhr.responseText;
+
+	// only bother calculating the hash if there is no ''
+	// marker indicating that we should ignore the hash
+	var actualHash = '';
+	if (urls[1] !== '') {
+	    actualHash = needSHA256(binStr, finish);
+	    if (!actualHash) {
+		// hash is being calculated asynchronously, and
+		// finish(hash) will be called when done
+		return;
+	    }
+	}
+	// hash was calculated synchronously, so we need to call finish(..)
+	finish(actualHash);
+    }
+
     // check and evaluate javascript data in binStr (if and only if it has the correct SHA256 hash)
-    var process = function(binStr) {
+    function finish(actualHash) {
 	// TODO: Are there common sh256 libraries/APIs we should test
 	//       for and use for possibly improved performance?  
 	//
 	//       Polycrypt, crypto-js, ...: ?
 	//       Web Crypto API: Maybe we should...
-
-	    // only bother calculating the hash if there is no ''
-	    // marker indicating that we should ignore the hash
-	var actualHash = (urls[1] === '') ? '' : needSHA256(binStr);
 
 	// Missing hash?
 	// In the development version only:
@@ -381,14 +487,14 @@ need = (function(callback, urls, hash) {
 	//       now we need to interpret special charcters as
 	//       text.
 
-
 	// Javascript injection, found at
 	// http://stackoverflow.com/questions/6432984/adding-script-element-to-the-dom-and-have-the-javascript-run
 	var el = callback.el || 'script';
 	var s = document.createElement(el);
 	s.type = callback.type || 'text/javascript';
 	var cbAfter;
-	try {
+	// only in development version: catch and log errors during injection
+	/*dev-only*/ try {
 	    if ('object' === typeof callback) {
 		if (callback.filter) {
 		    binStr = callback.filter(binStr, actualHash, hash);
@@ -447,6 +553,15 @@ need = (function(callback, urls, hash) {
 		// lack of an onload event in IE <= 8, found at
 		// http://msdn.microsoft.com/en-us/library/ie/hh180173(v=vs.85).aspx
 		if((el !== 'script') && s.addEventListener) {
+		    // surprisingly, this does not seem to work for
+		    // inline script injection (at least not in
+		    // Chrome), so use it only for everything else
+
+		    // TODO: Test if this is still the case after
+		    //       changing the parent element under which
+		    //       the new content is injected, or if
+		    //       another event could be used.
+
 		    s.addEventListener('load',callback,!false);
 		    /*dev-only-start*/{
 			s.addEventListener('error',function(){
@@ -459,6 +574,7 @@ need = (function(callback, urls, hash) {
 		    // the way to 'complete' to avoid calling
 		    // the callback early if any browser sends
 		    // events for other ready states first
+
 		    s.onreadystatechange = function() {
 			if (s.readyState == 'complete') {
 			    (callback)();
@@ -475,7 +591,7 @@ need = (function(callback, urls, hash) {
 		    var globalCallback = 'needcb' + hash;
 		    binStr = binStr + '\n;' + globalCallback+'()';
 		    window[globalCallback] = function() {
-			(callback)();
+			setTimeout(callback,0);
 			delete window[globalCallback];
 		    };
 		} else {
@@ -502,44 +618,20 @@ need = (function(callback, urls, hash) {
 		//       intention behind the callback in many
 		//       ways, such as not checking for successful
 		//       or complete parsing.
+		//
+		// TODO: Can we use zero delay? Assuming the injected
+		//       content gets evaluated in the same event
+		//       queue and that this task has already been
+		//       added to the queue by the time this is
+		//       executed, the answer should be yes. But can
+		//       we rely on this being the case in all
+		//       browsers that need this (cbAfter) hack?
 		setTimeout(callback, 1000);
 	    };
+/*dev-only-start*/
 	} catch (e) {
-	    /*dev-only-start*/{
-		log('Error appending script from' + urls[0]+': '+e);
-	    }/*dev-only-stop*/
+	    log('Error appending script from' + urls[0]+': '+e);
 	};
-    };
-
-    // TODO: The following hack prevents any character encoding to
-    //       affect what exactly we receive, but forcing utf8 instead
-    //       may be more appropriate here.
-
-    // Hack to pass bytes through unprocessed. Source:
-    // http://www.html5rocks.com/en/tutorials/file/xhr2/
-    xhr.overrideMimeType('text/plain; charset=x-user-defined');
-
-    if (callback!==0) {
-	// asynchronous case
-	xhr.onreadystatechange = function() {
-	    // wait until "DONE" status is reached,
-	    // rather than asynchronously processing partial responses
-	    if (this.readyState == 4) {
-		// only accept responses with a HTTP 200 status code
-		if (this.status == 200) {
-		    process(this.responseText);
-		} else {
-		    fallback();
-		};
-	    };
-	};
-    };
-    xhr.ontimeout = fallback;
-    xhr.onerror = fallback;
-    xhr.send();
-
-    if (callback===0) {
-	// synchronous case
-	process(xhr.responseText);
+/*dev-only-stop*/
     };
 });
