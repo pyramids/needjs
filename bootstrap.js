@@ -104,11 +104,16 @@ window.needSHA256 = (function(){
 window.need = function(urls, hash, extra) {
     /*dev-only*/ "use strict";
 
-    if (extra) {
+    if (extra || ('string' != typeof hash)) {
 	// this minimalistic, bootstrapping version of need.js does
-	// not support more than 2 parameters: defer call until the
-	// full version has been loaded
-	setTimeout(function(){window.need(urls, hash, extra)},50)
+	// not support anything other than 2 parameters: defer call
+	// until the full version has been loaded
+
+	// use the knowledge that there will never be more than 3 arguments,
+	// and that (this) does not matter to need(..), to shave off a few
+	// bytes in calling window.need(..) with same arguments again
+	//setTimeout(function(){window.need.apply(this, arguments)},50);
+	setTimeout(function(){window.need(urls, hash, extra)},50);
     }
 
     var xhr = new XMLHttpRequest();
@@ -123,7 +128,8 @@ window.need = function(urls, hash, extra) {
 	//       somewhat cryptic and likely browser-dependent, as
 	//       loading from an undefined(?) url may trigger an
 	//       CORS-like security exception rather than something
-	//       actually suggestive of the real problem
+	//       actually suggestive of the real problem, the
+	//       empty/missing URL
 //	if (urls[0]) {
 	    need(urls,hash)
 //	} else { throw 'need.js: no source for hash ' + hash; }
@@ -140,11 +146,11 @@ window.need = function(urls, hash, extra) {
 		    // execute the javascript code we loaded in the
 		    // window context (that is the global context for
 		    // browsers)
-		    eval.call(window, this.responseText)
-		    return
+		    eval.call(window, this.responseText);
+		    return;
 		}
 	    }
-	    fallback()
+	    fallback();
 	}
     };
 
@@ -157,4 +163,4 @@ window.need = function(urls, hash, extra) {
 
     xhr.open('GET',urls.shift(),true);
     xhr.send();
-}
+};
