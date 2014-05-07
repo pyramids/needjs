@@ -133,11 +133,11 @@ implementation of SHA256:
       // with doing the grunt work asynchronously, suitable for the
       // integrity-verified loading of a very large javascript library 
       need(
-	[
+        [
           '//cdn.jsdelivr.net/zxcvbn/1.0/zxcvbn.js',
-	  '//cdnjs.cloudflare.com/ajax/libs/zxcvbn/1.0/zxcvbn.js'
-	], 
-	'95b153f6259a67c3e0a86111d1d180ff1ba793ae8df2c232063350de31eaade1'
+          '//cdnjs.cloudflare.com/ajax/libs/zxcvbn/1.0/zxcvbn.js'
+        ], 
+        '95b153f6259a67c3e0a86111d1d180ff1ba793ae8df2c232063350de31eaade1'
       );
     </script>
   </head>
