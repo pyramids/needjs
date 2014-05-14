@@ -119,10 +119,7 @@ needSHA256 = (function(){
 
 
 need = function(urls, hash, extra) {
-    // shave off a few bytes by using strict mode only in the
-    // development version
-
-    /*dev-only*/ "use strict";
+    "use strict";
 
     if (extra || !hash) {
 	// this minimalistic, bootstrapping version of need.js does
@@ -134,53 +131,51 @@ need = function(urls, hash, extra) {
 	// bytes in calling window.need(..) with same arguments again
 	//setTimeout(function(){need.apply(this, arguments)},20);
 	setTimeout(function(){need(urls, hash, extra)},20);
-    }
+	return;
+    };
 
-    var xhr = new XMLHttpRequest();
+    var xhr = new XMLHttpRequest(), fallbackActive=0;
 
-    var fallback = function() {
-	// we only need to call need(..) again because the urls array
-	// gets shifted and hence has already been advanced to the
-	// next fallback url by the time this might execute
-	//
-	// NOTE: Without the uncommented code, the asynchronous
-	//       exception thrown when all sources fail becomes
-	//       somewhat cryptic and likely browser-dependent, as
-	//       loading from an undefined(?) url may trigger an
-	//       CORS-like security exception rather than something
-	//       actually suggestive of the real problem, the
-	//       empty/missing URL
-//	if (urls[0]) {
-	    need(urls,hash)
-//	} else { throw 'need.js: no source for hash ' + hash; }
+    // only if this is not the last fallback URL: set a timeout
+    if (urls[1]) {
+	// use global window.needTimeout (for all calls), if the user provided it
+	// otherwise, 5s should be enough for a HTTPS connection even if one (single!) packet is lost
+	xhr.timeout = window.needTimeout || 5000;
     };
 
     xhr.ontimeout = fallback;
     xhr.onerror = fallback;
     xhr.onreadystatechange = function() {
-	if (this.readyState == 4) {
-	    if (this.status == 200) {
-		// process this.responseText: 
-		// check SHA256 and eval/inject or fallback to next url
-		if (hash === needSHA256(this.responseText)) {
-		    // execute the javascript code we loaded in the
-		    // window context (that is the global context for
-		    // browsers)
-		    //eval.call(window, this.responseText);
+	if (this.readyState != 4) {
+	    // resource has not been fully loaded yet: do nothing
+	    return;
+	};
 
-		    // alternative to eval(..): 
-		    // shave off a few bytes, plus give the browser's
-		    // event loop a chance to catch up after our
-		    // SHA256 calculation (minimizing the chance that
-		    // the user gets warned about a script becoming
-		    // unresponsive), at the expense of delaying
-		    // script execution slightly
-		    setTimeout(this.responseText,0);
-		    return;
-		}
-	    }
-	    fallback();
-	}
+	// is everything ok? then proceed
+	if (this.status == 200) {
+	    // process this.responseText:
+	    // check SHA256 and eval/inject or fallback to next url
+	    if (hash === needSHA256(this.responseText)) {
+		// execute the javascript code we loaded in the
+		// window context (that is the global context for
+		// browsers)
+		//eval.call(window, this.responseText);
+		
+		// alternative to eval(..): 
+		// shave off a few bytes, plus give the browser's
+		// event loop a chance to catch up after our
+		// SHA256 calculation (minimizing the chance that
+		// the user gets warned about a script becoming
+		// unresponsive), at the expense of delaying
+		// script execution slightly
+		setTimeout(this.responseText,0);
+		return;
+	    };
+	};
+
+	// We did not successfully finish with the resource from the
+	// current URL?  Then fallback to other URL(s).
+	fallback();
     };
 
     // The following hack prevents any character encoding to affect
@@ -192,4 +187,27 @@ need = function(urls, hash, extra) {
 
     xhr.open('GET',urls.shift(),true);
     xhr.send();
+
+    function fallback() {
+	// we only need to call need(..) again because the urls array
+	// gets shifted and hence has already been advanced to the
+	// next fallback url by the time this might execute
+	//
+	// NOTE: Without the if-else code (always executing the
+	//       then-clause), the asynchronous exception thrown when
+	//       all sources fail becomes somewhat cryptic and likely
+	//       browser-dependent, as loading from an undefined(?)
+	//       url may trigger an CORS-like security exception
+	//       rather than something actually suggestive of the real
+	//       problem, the empty/missing URL
+	if (!fallbackActive++) {
+	    if (urls[0]) {
+		need(urls,hash)
+	    } else { 
+		throw 'need.js: no source for hash ' + hash; 
+	    };
+	} else { 
+	    //console.log('de-duplicated fallback invokation');
+	};
+    };
 };

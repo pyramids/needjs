@@ -24,13 +24,18 @@ bootstrap.min.js: bootstrap.js
 bootstrap.min.js.gz: bootstrap.min.js
 	zopfli --i1000 bootstrap.min.js >bootstrap.min.js.gz
 
-# auto-update README.md with size statistics
-README.md: need.min.js need.min.js.gz bootstrap.min.js.gz makestats
+# auto-update README.md with size statistics and tests.js with hash
+stats: need.min.js need.min.js.gz bootstrap.min.js.gz tests.js makestats
 	bash ./makestats
+
+README.md: stats
 
 download:
 	wget https://raw.githubusercontent.com/ryancdotorg/async-sha256-js/master/async-sha256.js
 	mv -f async-sha256.js ext/async-sha256.js
+
+tests: need.min.js bootstrap.min.js stats
+	go run testserver.go
 
 clean:
 	rm -f *.min.js *.min.js.gz *~

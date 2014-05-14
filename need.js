@@ -365,6 +365,15 @@ need = (function(callback, urls, hash) {
 	throw 'need.js: no source for hash ' + hash;
     }
 
+    // only if this is not the last fallback URL: set a timeout 
+    // detect existence of further fallback URL(s) by looking for an
+    // existing and non-falsy (non-marker) URL
+    if (urls[1] || urls[2]) {
+	// use global window.needTimeout (for all calls), if the user provided it
+	// otherwise, 5s should be enough for a HTTPS connection even if one (single!) packet is lost
+	xhr.timeout = window.needTimeout || 5000;
+    };
+
     // TODO: The following hack prevents any character encoding to
     //       affect what exactly we receive, but forcing utf8 instead
     //       may be more appropriate here.

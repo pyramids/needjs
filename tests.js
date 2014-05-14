@@ -117,13 +117,13 @@
 	= 'https://cdn.jsdelivr.net/alertify.js/0.4.0rc1/alertify.js';
     // a path that hopefully results in a "not found" condition
     var urlNotFound
-	= 'https://cdn.jsdelivr.net/not/even/the/right/path-structure.sure.not';
+	= '/error/404';
     // a url that does not resolve
     var urlNoHost
         = 'https://dlehforeuihfncrelncferoifheriuchnepofjer.not-even.a.top-level-domain';
     // a url (localhost) that should resolve but time-out due to there not being a webserver (hopefully...)
     var urlTimeOut
-	= 'https://0.0.0.1:81';
+	= '/error/timeout';
     var wrongHash = 'incorrect_and_even_invalid_hash';
     var cleanJs = function() {
 	window.accounting = null;
@@ -159,8 +159,9 @@
 
 	// tests suitable for all versions
 	asyncTest('load script, correct hash', function() {
-	    expect( 1 + 1 );
+	    expect( 3 );
 	    cleanJs();
+	    ok( !jsIsPresent(), 'test script not initially present' );
 	    need(
 		[jsURL],
 		jsSHA256
@@ -170,15 +171,16 @@
 		function() {
 		    okCallback('jsIsPresent()', 'script loaded', true)();
 		    cleanJs();
-		    ok( !jsIsPresent(), 'script unloaded (affects later tests)' );
+		    ok(eval('!jsIsPresent()'), 'script unloaded (affects later tests)' );
 		}
 	    );
 	});
 
 
 	asyncTest('large source (zxcvbn.js)', function() {
-	    expect( 2 );
+	    expect( 3 );
 	    cleanJs();
+	    ok( !jsIsPresent(), 'test script not initially present' );
 	    window.zxcvbn_load_hook = function() {
 		ok( window.zxcvbn , 'zxcvbn.js loaded.');
 		delete window.zxcvbn;
@@ -192,45 +194,49 @@
 	});
 
 	if (!bootstrap) {
-	asyncTest('custom hash function (async-sha256.js)', function() {
-	    expect( 1 );
-	    cleanJs();
-	    var oldNeedSHA256 = window.needSHA256;
-	    window.needSHA256 = needSHA256async;
-	    need(
-		function(){
+	    asyncTest('custom hash function (async-sha256.js)', function() {
+		expect( 3 );
+		cleanJs();
+		ok( !jsIsPresent(), 'test script not initially present' );
+		var oldNeedSHA256 = window.needSHA256;
+		window.needSHA256 = needSHA256async;
+		need(
+		    function(){
+			window.needSHA256 = oldNeedSHA256;
+			okCallback('jsIsPresent()', 'script loaded', true)();
+			cleanJs();
+			ok(eval('!jsIsPresent()'), 'script unloaded (affects later tests)' );
+		    }, 
+		    [jsURL],
+		    jsSHA256
+		);
+	    });
+
+	    asyncTest('custom hash function, large source', function() {
+		expect( 3 );
+		cleanJs();
+		ok( !jsIsPresent(), 'test script not initially present' );
+		var oldNeedSHA256 = window.needSHA256;
+		window.needSHA256 = needSHA256async;
+		
+		window.zxcvbn_load_hook = function() {
 		    window.needSHA256 = oldNeedSHA256;
-		    okCallback('jsIsPresent()', 'script loaded', true)();
-		}, 
-		[jsURL],
-		jsSHA256
-	    );
-	});
-
-
-	asyncTest('custom hash function, large source', function() {
-	    expect( 2 );
-	    cleanJs();
-	    var oldNeedSHA256 = window.needSHA256;
-	    window.needSHA256 = needSHA256async;
-
-	    window.zxcvbn_load_hook = function() {
-		window.needSHA256 = oldNeedSHA256;
-		ok( window.zxcvbn , 'zxcvbn.js loaded.');
-		delete window.zxcvbn;
-		ok( !window.zxcvbn, 'zxcvbn.js removed.');
-		start();
-	    };
-	    need(
-		[bigjsURL2],
-		bigjsSHA256
-	    );
-	});
+		    ok( window.zxcvbn , 'zxcvbn.js loaded.');
+		    delete window.zxcvbn;
+		    ok( !window.zxcvbn, 'zxcvbn.js removed.');
+		    start();
+		};
+		need(
+		    [bigjsURL2],
+		    bigjsSHA256
+		);
+	    });
 	};
 
 	asyncTest( 'exception after fallbacks, no callback', function() {
-	    expect( 1 );
+	    expect( 2 );
 	    cleanJs();
+	    ok( !jsIsPresent(), 'test script not initially present' );
 	    // for the bootstrap version, accept any exception
 	    assertNeedException(1000, bootstrap);
 	    need(
@@ -268,7 +274,7 @@
 	QUnit.done(function() { window.onerror = woe; });
 
 	/*bootstrap || */
-	asyncTest('load script after non-200 url', function() {
+	asyncTest('load script after 404 url', function() {
 	    expect( 3 );
 	    cleanJs();
 
@@ -335,22 +341,38 @@
 	// so add a bootstrap-only tests as replacement, then quit
 	if (bootstrap) {
 
-/*
-	    // this can fail due to CORS when using the file:// protocol
+	    // good test (bootstrapping), but as qunit can run it early,
+	    // it risks invalidating the other tests
+	    /*
 	    asyncTest('bootstrap (loading need.min.js)', function() {
-		need(['need.min.js'],'b5c93f88658b2987239467b301ac05853af333eefe6e201cc2e619fc8708978a');
+		expect( 2 );
+
+		// defer call that cannot be handled by the bootstrap version
+		need(
+		    okCallback('true', 'deferred need(..) call got executed', true),
+		    ['need.min.js'],
+    'f643a0fdaa606172d34aad31f3a0fa2206f17ef34c101f88a51d013945721858'// SHA256 of need.min.js
+		);
+
+		// bootstrap: load full need.js version
+		need(
+		    ['need.min.js'],
+    'f643a0fdaa606172d34aad31f3a0fa2206f17ef34c101f88a51d013945721858'// SHA256 of need.min.js
+		);
 		doWhen(
 		    function() { return window.need != needVersion.need; }, 
-		    okCallback('true', 'bootstrap attempt changed window.need', true)
+		    okCallback('true', 'bootstrap attempt changed window.need', false)
 		);
 	    });
 	    */
+
 	    return;
 	}
 
 	asyncTest('callback function', function() {
-	    expect( 1 );
+	    expect( 2 );
 	    cleanJs();
+	    ok(eval('!jsIsPresent()'), 'script not present initially' );
 	    need(
 		okCallback('jsIsPresent()', 'script loaded', true), 
 		[jsURL],
@@ -359,8 +381,9 @@
 	});
 
 	asyncTest( 'callback object', function() {
-	    expect( 1 );
+	    expect( 2 );
 	    cleanJs();
+	    ok(eval('!jsIsPresent()'), 'script not present initially' );
 	    need(
 		{cb: okCallback('jsIsPresent()', 'script loaded', true)}, 
 		[jsURL],
@@ -369,8 +392,9 @@
 	});
 
 	asyncTest( 'load script, filter and regular callback', function() {
-	    expect( 2);
+	    expect(3);
 	    cleanJs();
+	    ok(eval('!jsIsPresent()'), 'script not present initially' );
 	    need(
 		{ 
 		    cb: okCallback(
@@ -390,8 +414,9 @@
 	});
 
 	asyncTest( 'fallback after hash mismatch', function() {
-	    expect( 1 );
+	    expect( 2 );
 	    cleanJs();
+	    ok(eval('!jsIsPresent()'), 'script not present initially' );
 	    need(
 		okCallback('jsIsPresent()', '', true), 
 		[jsBadContent, jsURL],
@@ -400,8 +425,9 @@
 	});
 
 	asyncTest( 'exception after failed fallbacks', function() {
-	    expect( 1 );
+	    expect( 2 );
 	    cleanJs();
+	    ok(eval('!jsIsPresent()'), 'script not present initially' );
 	    assertNeedException();
 	    need(
 		okCallback(false, 'incorrectly accepted bad content', true), 
@@ -423,8 +449,9 @@
 */
 
 	asyncTest( 'honor 0 flag: no exception after failed fallbacks', function() {
-	    expect( 1 );
+	    expect( 2 );
 	    cleanJs();
+	    ok(eval('!jsIsPresent()'), 'script not present initially' );
 	    need(
 		okCallback(false, 'incorrectly accepted bad content', true),
 		[jsBadContent, jsBadContent2, 0],
@@ -440,8 +467,9 @@
 	});
 
 	asyncTest( 'honor 0 flag: no exception after failed fallbacks, no callback', function() {
-	    expect( 1 );
+	    expect( 2 );
 	    cleanJs();
+	    ok(eval('!jsIsPresent()'), 'script not present initially' );
 	    need(
 		[jsBadContent, jsBadContent2, 0],
 		jsSHA256
@@ -456,8 +484,9 @@
 	});
 
 	asyncTest( 'honor \'\' flag', function() {
-	    expect( 1 );
+	    expect( 2 );
 	    cleanJs();
+	    ok(eval('!jsIsPresent()'), 'script not present initially' );
 	    need(
 		okCallback('jsIsPresent()', '', true),
 		[jsURL, ''],
@@ -466,8 +495,9 @@
 	});
 
 	asyncTest( 'honor \'\' flag when no hash given', function() {
-	    expect( 1 );
+	    expect( 2 );
 	    cleanJs();
+	    ok(eval('!jsIsPresent()'), 'script not present initially' );
 	    need(
 		okCallback('jsIsPresent()', '', true), 
 		[jsURL, '']
@@ -475,8 +505,9 @@
 	});
 
 	asyncTest( 'honor \'\' flag, no callback, no hash', function() {
-	    expect( 1 );
+	    expect( 2 );
 	    cleanJs();
+	    ok(eval('!jsIsPresent()'), 'script not present initially' );
 	    need(
 		[jsURL, '']
 	    );
@@ -495,8 +526,9 @@
 	});
 
 	asyncTest( 'honor \'\' flag after fallback', function() {
-	    expect( 1 );
+	    expect( 2 );
 	    cleanJs();
+	    ok(eval('!jsIsPresent()'), 'script not present initially' );
 	    need(
 		okCallback('jsIsPresent()', '', true), 
 		[jsBadContent, jsURL, ''],
