@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>needjs Unit Tests using QUnit</title>
+  <link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-git.css">
+</head>
+<body>
+  <script src="bootstrap.min.js"></script>
+  <script>
+    needTimeout=400;
+    need(function(){alert('Done!')}, ['/need.min.js'],
+    'f643a0fdaa606172d34aad31f3a0fa2206f17ef34c101f88a51d013945721858'// SHA256 of need.min.js
+    );
+    need(['/error/404', '/error/timeout', '/need.min.js'],
+    'f643a0fdaa606172d34aad31f3a0fa2206f17ef34c101f88a51d013945721858'// SHA256 of need.min.js
+    );
+  </script>
+</body>
+</html>

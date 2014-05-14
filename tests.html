@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
@@ -8,7 +9,10 @@
   <div id="qunit"></div>
   <div id="qunit-fixture"></div>
   <script src="https://code.jquery.com/qunit/qunit-1.14.0.js"></script>
-  <script src="bootstrap.min.js"></script>
+  <script src="bootstrap.js"></script>
+  <script>
+    needTimeout = 400;
+  </script>
   <script>
     needjsBootstrap = {"need": window.need, "needSHA256": window.needSHA256};
     need = null;

@@ -8,6 +8,8 @@ BOOTSTRAP_SIZE_MIN=`wc bootstrap.min.js.gz |awk '{ print $3 }'`
 SHA256=`sha256sum need.min.js |cut -d ' ' -f 1`
 
 
+# add byte sizes to README.md
+
 MESSAGE_MIN="Minified and gzipped size is \`$SIZE_MIN\` bytes (auto-updated on $DATE), after removal of development support such as console.log output."
 
 MESSAGE_BOOT="If that is too much for you, there is a bootstrap version that minifies and gzips down to \`$BOOTSTRAP_SIZE_MIN\` bytes whilst compromising only on speed, not on functionality (invocations with the optional callback parameter are deferred and should work as soon as the full version has been loaded)."
@@ -16,10 +18,14 @@ MESSAGE_BOOT="If that is too much for you, there is a bootstrap version that min
 
 sed -i "/Minified and gzipped size/c\\$MESSAGE_MIN $MESSAGE_BOOT" README.md
 
-
 SHA256MSG="    '"$SHA256"'\\/\\/ SHA256 of need.min.js"
 sed -i "/SHA256 of need.min.js/c\\$SHA256MSG" README.md
+sed -i "/SHA256 of need.min.js/c\\$SHA256MSG" tests.bootstrap.html
 
+SHA256myjs=`cat README.md |awk '{ if ($0=="// my.js,") out=1; if ($0=="\`\`\`") out=0; if (out) {print;}  }' |sha256sum |cut -d ' ' -f 1`
+SHA256myjsMSG="    '"$SHA256myjs"'\\/\\/ SHA256 of my.js"
+sed -i "/SHA256 of my.js/c\\$SHA256myjsMSG" README.md
 
 BOOTSTRAP="\t\tneed(['need.min.js'],'"$SHA256"');"
 sed -i "/\\['need.min.js'\\],'/c\\$BOOTSTRAP" tests.js
+sed -i "/\\['need.min.js'\\],'/c\\$BOOTSTRAP" tests.bootstrap.html
