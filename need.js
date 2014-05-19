@@ -455,13 +455,13 @@ need = (function(callback, urls, hash) {
 	// only do the following once, in case any browser triggers
 	// more than one error handler (ontimeout, onerrror, or load
 	// with non-200 HTTP status code)
-	if (xhr) {
+	if (xhr) {	
+	    /*dev-only-start*/{
+		log('failed to load ' + urls[0] + '; HTTP status ' + xhr.status);
+	    }/*dev-only-stop*/
+
 	    xhr = 0;
 	    binStr = 0;
-	
-	    /*dev-only-start*/{
-		log('failed to load ' + urls[0]);
-	    }/*dev-only-stop*/
 
 	    // try the next url
 	    need(callback, urls.slice(1), hash);
