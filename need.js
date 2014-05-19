@@ -352,6 +352,25 @@ need = (function(callback, urls, hash) {
 	return;
     };
 
+    if ('number' === typeof urls[0]) {
+	// if a non-zero number x is passed as a URL, occasionally (in
+	// ca. 1% of invocations), shuffle the next x urls to prime
+	// the client cache with one of the fallback sources
+	//
+	// NOTE: Use with caution; incompatible with URL flags.
+	if (Math.random(100) < 1) {
+	    var idx = Math.ceil(Math.random(urls.shift())), firstUrl;
+
+	    // move urls[idx] to urls[0], keeping urls[0] as next
+	    // fallback (urls[1]), and otherwise only change the order
+	    // among indices 0...idx
+	    firstUrl = urls[0];
+	    urls[0] = urls[idx];
+	    urls[idx] = urls[1];
+	    urls[1] = firstUrl;
+	}
+    }
+
     var 
       xhr=new XMLHttpRequest(),
       binStr; // the raw (not charset-recoded, binary) data loaded
