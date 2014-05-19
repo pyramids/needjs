@@ -357,7 +357,44 @@ need = (function(callback, urls, hash) {
       binStr; // the raw (not charset-recoded, binary) data loaded
 
     if (urls[0]) {
-	xhr.open('GET',urls[0],callback!==0);
+	if ('withCredentials' in xhr) {
+	    // XMLHttpRequest2 object detected:
+	    // this supports CORS, so all is well
+	    xhr.open('GET', urls[0], callback!==0);
+	} else if (typeof XDomainRequest != "undefined") {
+	    // Use semi-equvalent XDomainRequest
+	    // (in IE8 and ... possibly nowhere else?)
+	    xhr = new XDomainRequest();
+	    xhr.open('GET', urls[0]);
+	} else {
+	    // we are stuck with the old version of a XMLHttpRequest
+	    // by polyfilling some of the new event handlers (onload,
+	    // onerror), we may at least be able to support non-CORS
+	    // source URLs...
+	    xhr.open('GET', urls[0], callback!==0);
+	    if (callback!==0) {
+		// asynchronous case
+		xhr.onreadystatechange = function() {
+		    // wait until "DONE" status is reached,
+		    // rather than asynchronously processing partial responses
+		    if (this.readyState == 4) {
+			// only accept responses with a HTTP 200 status code
+			if (this.status == 200) {
+			    // xhr.onload should be called---calling process
+			    process();
+			} else {
+			    // xhr.onerror should be called---calling fallback
+			    fallback();
+			};
+		    };
+		};
+	    };	    
+	};
+	xhr.onload = process;
+	// handle both error and timeout events, in case some
+	// implementation does not issue an error event in both cases
+	xhr.ontimeout = fallback;
+	xhr.onerror = fallback;
     } else {
 	// in normal use, this will occur if all given urls
 	// sequentially failed to provide data matching this hash
@@ -380,25 +417,10 @@ need = (function(callback, urls, hash) {
 
     // Hack to pass bytes through unprocessed. Source:
     // http://www.html5rocks.com/en/tutorials/file/xhr2/
-    xhr.overrideMimeType('text/plain; charset=x-user-defined');
+    if (xhr.overrideMimeType) {
+	xhr.overrideMimeType('text/plain; charset=x-user-defined');
+    }
 
-    if (callback!==0) {
-	// asynchronous case
-	xhr.onreadystatechange = function() {
-	    // wait until "DONE" status is reached,
-	    // rather than asynchronously processing partial responses
-	    if (this.readyState == 4) {
-		// only accept responses with a HTTP 200 status code
-		if (this.status == 200) {
-		    process();
-		} else {
-		    fallback();
-		};
-	    };
-	};
-    };
-    xhr.ontimeout = fallback;
-    xhr.onerror = fallback;
     xhr.send();
 
     if (callback===0) {

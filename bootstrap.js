@@ -136,8 +136,18 @@ need = function(urls, hash, extra) {
 
     var xhr = new XMLHttpRequest(), fallbackActive=0;
 
-    // only if this is not the last fallback URL: set a timeout
-    if (urls[1]) {
+    if (('withCredentials' in xhr) || (typeof XDomainRequest === 'undefined')) {
+	// XMLHttpRequest2 object detected or the IE-only alternative XDomainRequest is not available
+	xhr.open('GET',urls.shift(),true);
+    } else if (typeof XDomainRequest != "undefined") {
+	// Use XDomainRequest
+	// (in IE8 and ... possibly nowhere else?)
+	xhr = new XDomainRequest();
+	xhr.open('GET',urls.shift());
+    }
+
+    // only if this was not the last fallback URL: set a timeout
+    if (urls[0]) {
 	// use global window.needTimeout (for all calls), if the user provided it
 	// otherwise, 5s should be enough for a HTTPS connection even if one (single!) packet is lost
 	xhr.timeout = window.needTimeout || 5000;
@@ -183,9 +193,10 @@ need = function(urls, hash, extra) {
 
     // Hack to pass bytes through unprocessed. Source:
     // http://www.html5rocks.com/en/tutorials/file/xhr2/
-    xhr.overrideMimeType('text/plain; charset=x-user-defined');
+    if (xhr.overrideMimeType) {
+	xhr.overrideMimeType('text/plain; charset=x-user-defined');
+    };
 
-    xhr.open('GET',urls.shift(),true);
     xhr.send();
 
     function fallback() {
