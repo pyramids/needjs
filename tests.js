@@ -238,7 +238,7 @@
 	    cleanJs();
 	    ok( !jsIsPresent(), 'test script not initially present' );
 	    // for the bootstrap version, accept any exception
-	    assertNeedException(1000, bootstrap);
+	    assertNeedException(5000, bootstrap);
 	    need(
 		[jsBadContent, jsBadContent2],
 		jsSHA256
@@ -428,7 +428,7 @@
 	    expect( 2 );
 	    cleanJs();
 	    ok(eval('!jsIsPresent()'), 'script not present initially' );
-	    assertNeedException();
+	    assertNeedException(5000);
 	    need(
 		okCallback(false, 'incorrectly accepted bad content', true), 
 		[jsBadContent, jsBadContent2],
@@ -440,7 +440,7 @@
 	asyncTest( 'exception after failed fallbacks, no callback', function() {
 	    expect( 1 );
 	    cleanJs();
-	    assertNeedException();
+	    assertNeedException(5000);
 	    need(
 		[jsBadContent, jsBadContent2],
 		jsSHA256
@@ -538,7 +538,7 @@
     };
 
     // wait 5 seconds for tests to finish
-    QUnit.config.testTimeout = 5000;
+//    QUnit.config.testTimeout = 5000 * 2;
 
     // prime cache to speed up other tests
  //   need(function(){ cleanJs(); runTests(); }, [jsURL],jsSHA256);
