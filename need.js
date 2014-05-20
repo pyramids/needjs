@@ -612,7 +612,7 @@ need = (function(callback, urls, hash) {
 		    //       the new content is injected, or if
 		    //       another event could be used.
 
-		    s.addEventListener('load',callback,!false);
+		    s.addEventListener('load',callback,false);
 		    /*dev-only-start*/{
 			s.addEventListener('error',function(){
 			    log('error processing '+urls[0]);
@@ -654,7 +654,12 @@ need = (function(callback, urls, hash) {
 	    // TODO: Should we allow a choice between body and head?
 	    //       For scripts, body is probably the better choice
 	    //       For style sheets, standards call for head
-	    document.head.appendChild(s);
+
+	    // IE<=8 does not support document.head
+	    document.getElementsByTagName('head')[0].appendChild(s);
+//	    (document.head || document.getElementsByTagName('head')[0]).appendChild(s);
+	    //document.head.appendChild(s);
+
 	    //document.body.appendChild(s);
 	    if (cbAfter) {
 		// ultimate fallback for honoring the callback
