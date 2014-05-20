@@ -407,7 +407,7 @@ need = (function(callback, urls, hash) {
 			};
 		    };
 		};
-	    };	    
+	    };
 	};
 	xhr.onload = process;
 	// handle both error and timeout events, in case some
@@ -542,7 +542,7 @@ need = (function(callback, urls, hash) {
 	var el = callback.el || 'script';
 	var s = document.createElement(el);
 	s.type = callback.type || 'text/javascript';
-	var cbAfter;
+
 	// only in development version: catch and log errors during injection
 	/*dev-only*/ try {
 	    if ('object' === typeof callback) {
@@ -590,66 +590,15 @@ need = (function(callback, urls, hash) {
 			// disadvantage being that a small extra delay
 			// is applied (typ. the maximum of 4ms and the
 			// time the browsers' event queue empties)
-			setTimeout(callback,0);
+			//setTimeout(callback,0);
 			// eval only works in a global scope if we
 			// override the this object with the global
 			// object (window in browsers)
-			//eval.call(window, callback);
+			eval.call(window, callback);
 		    };
 		};
 	    };
-	    if ('function' === typeof callback) {
-		// Microsoft's recommended pattern to work around the
-		// lack of an onload event in IE <= 8, found at
-		// http://msdn.microsoft.com/en-us/library/ie/hh180173(v=vs.85).aspx
-		if((el !== 'script') && s.addEventListener) {
-		    // surprisingly, this does not seem to work for
-		    // inline script injection (at least not in
-		    // Chrome), so use it only for everything else
 
-		    // TODO: Test if this is still the case after
-		    //       changing the parent element under which
-		    //       the new content is injected, or if
-		    //       another event could be used.
-
-		    s.addEventListener('load',callback,false);
-		    /*dev-only-start*/{
-			s.addEventListener('error',function(){
-			    log('error processing '+urls[0]);
-			},false);
-		    }/*dev-only-stop*/
-		} else if((el !== 'script') && s.readyState) {
-		    // deviating from Microsoft's recommendation,
-		    // check that the readyState has changed all
-		    // the way to 'complete' to avoid calling
-		    // the callback early if any browser sends
-		    // events for other ready states first
-
-		    s.onreadystatechange = function() {
-			if (s.readyState == 'complete') {
-			    (callback)();
-			};
-		    };
-		} else if (el === 'script') {
-		    // fallback to polluting the global namespace
-		    // (with a name including the very long and
-		    // cryptic hash value, extremely unlikely to
-		    // intefere with anything else)
-		    
-		    // TODO: This does not work for non-script resources.
-		    //       Consider checking and possibly calling directly.
-		    var globalCallback = 'needcb' + hash;
-		    binStr = binStr + '\n;' + globalCallback+'()';
-		    window[globalCallback] = function() {
-			setTimeout(callback,0);
-			delete window[globalCallback];
-		    };
-		} else {
-		    // set flag to immitate the onload-like
-		    // callback by having it called later
-		    cbAfter = 1;
-		};
-	    };
 	    s.appendChild(document.createTextNode(binStr));
 	    // TODO: Should we allow a choice between body and head?
 	    //       For scripts, body is probably the better choice
@@ -661,28 +610,11 @@ need = (function(callback, urls, hash) {
 	    //document.head.appendChild(s);
 
 	    //document.body.appendChild(s);
-	    if (cbAfter) {
-		// ultimate fallback for honoring the callback
-		// parameter: execute, after a very long delay, the
-		// callback meant to be called immediately after
-		// the browser processed the new content (onload
-		// event), instead of checking when it is really
-		// ready (better late than never...)
-		//
-		// NOTE: This behaves differently from the
-		//       intention behind the callback in many
-		//       ways, such as not checking for successful
-		//       or complete parsing.
-		//
-		// TODO: Can we use zero delay? Assuming the injected
-		//       content gets evaluated in the same event
-		//       queue and that this task has already been
-		//       added to the queue by the time this is
-		//       executed, the answer should be yes. But can
-		//       we rely on this being the case in all
-		//       browsers that need this (cbAfter) hack?
-		setTimeout(callback, 1000);
+
+	    if ('function' === typeof callback) {
+		setTimeout(callback, 0);
 	    };
+
 /*dev-only-start*/
 	} catch (e) {
 	    log('Error appending script from' + urls[0]+': '+e);
