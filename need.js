@@ -109,8 +109,6 @@
                       (default: 'script')
 
          callback.type: a string with the type tag to inject with
-                        (default: 'text/javascript', even if
-                        callback.el is given and not 'script')
          
 
     4. An array, then it is assumed that the optional callback
@@ -541,7 +539,9 @@ need = (function(callback, urls, hash) {
 	// http://stackoverflow.com/questions/6432984/adding-script-element-to-the-dom-and-have-the-javascript-run
 	var el = callback.el || 'script';
 	var s = document.createElement(el);
-	s.type = callback.type || 'text/javascript';
+	if (callback.type) {
+	    s.type = callback.type;
+	};
 
 	// only in development version: catch and log errors during injection
 	/*dev-only*/ try {
