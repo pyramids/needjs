@@ -489,6 +489,30 @@ need = (function(callback, urls, hash) {
 
     // check and evaluate javascript data in binStr (if and only if it has the correct SHA256 hash)
     function finish(actualHash) {
+	// locate DOM parent element for injecting the content;
+	// if not present (yet?), reschedule this task
+	//
+	// whilst it would be more efficient to do some verification
+	// (and fallback to the next source, if necessary) before
+	// waiting for the DOM, browsers typically have the required
+	// head object ready immediately, so there is little gain in
+	// optimizing this
+	//
+	// TODO: This fails if the html document does not have a head
+	//       tag.  Decide how to deal with this (document the
+	//       requirement for a head? or create a head tag?).
+
+	// IE<=8 does not support document.head
+	//var parent = document.head || document.getElementsByTagName('head')[0];
+	var parent = document.getElementsByTagName('head')[0];
+	/**/if (!parent) {
+	    setTimeout(function(){
+		finish(actualHash);
+	    }, 50);
+	    return;
+	};/**/
+
+
 	// TODO: Are there common sh256 libraries/APIs we should test
 	//       for and use for possibly improved performance?  
 	//
@@ -604,13 +628,8 @@ need = (function(callback, urls, hash) {
 	    //       For scripts, body is probably the better choice
 	    //       For style sheets, standards call for head
 
-	    // IE<=8 does not support document.head
-	    document.getElementsByTagName('head')[0].appendChild(s);
-//	    (document.head || document.getElementsByTagName('head')[0]).appendChild(s);
-	    //document.head.appendChild(s);
-
-	    //document.body.appendChild(s);
-
+	    //parent.appendChild(s);
+	    parent.insertBefore(s, parent.childNodes[0]);
 	    if ('function' === typeof callback) {
 		setTimeout(callback, 0);
 	    };
