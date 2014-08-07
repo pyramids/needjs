@@ -168,8 +168,10 @@
 
 /**
  * window.needSHA256(binInput[, callback]) calculates the SHA256 hash
- * of the DOMString (binInput). A DOMString is the default type used
- * by XMLHttpRequest for its responseText.
+ * of the DOMString (binInput), which must represent raw (unecoded)
+ * input by representing each consecutive byte of data as the charcode
+ * of of one character, ranging from 0 to 0xFF. A DOMString is the
+ * default type used by XMLHttpRequest for its responseText.
  *
  * It can be implemented in
  * either of two ways:
@@ -246,6 +248,8 @@ needSHA256 = window.needSHA256 || (function(){
   function SHA256(b){
     var HASH = H.slice(i=0),
 //
+      c,
+//
 // unescape(..) is DEPRECATED, so the following line could cause
 // problems in the future, see
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/unescape
@@ -266,9 +270,28 @@ needSHA256 = window.needSHA256 || (function(){
 //
 // The following line has a problem for charCodes >= 0x80, which
 // should be (UTF8-) encoded into two bytes (or sometimes three?
-// DOMStrings have charCodes ranging from 0x00 to 0xFFFF)
+// DOMStrings have charCodes ranging from 0x00 to 0xFFFF).
 //
-    for(;i<l;) m[i>>2] |= (s.charCodeAt(i) & 0xff) << 8*(3 - i++%4);
+// This is okay only if it is guaranteed that the input string does
+// not have any charCodes outside the range 0 to 0xFF inclusive.
+//
+//    for(;i<l;) m[i>>2] |= (s.charCodeAt(i) & 0xff) << 8*(3 - i++%4);
+//
+// better be safe than sorry:
+      for(;i<l;) {
+	  c=s.charCodeAt(i);
+	  if (c > 0xff) {
+	      // We must react to the unexpected extra information
+	      // present; otherwise, we'd allow malleability. Let's
+	      // not throw an exception for fear that such code may
+	      // slow down some javascript engines, but instead return
+	      // an invalid hash that hence comes fairly close to
+	      // signalling an exception
+	      return 'invalid';
+	  }
+	  m[i>>2] |= (c & 0xff) << 8*(3 - i++%4);
+      }
+//
 
     l *= 8;
 
@@ -432,7 +455,9 @@ need = (function(callback, urls, hash) {
     //       affect what exactly we receive, but forcing utf8 instead
     //       may be more appropriate here.
 
-    // Hack to pass bytes through unprocessed. Source:
+    // Hack to pass bytes through unprocessed, with exactly one
+    // received byte contained at each index of the string
+    // xhr.responseText. Source:
     // http://www.html5rocks.com/en/tutorials/file/xhr2/
     if (xhr.overrideMimeType) {
 	xhr.overrideMimeType('text/plain; charset=x-user-defined');
