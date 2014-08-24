@@ -27,7 +27,7 @@ html document or by loading it from your own server(s).
 Statistics
 ----------
 
-Minified and gzipped size is `1471` bytes (auto-updated on Sun Aug 24 01:57:39 UTC 2014), after removal of development support such as console.log output. If that is too much for you, there is a bootstrap version that minifies and gzips down to `1108` bytes whilst compromising only on speed, not on functionality (invocations with the optional callback parameter are deferred and should work as soon as the full version has been loaded).
+Minified and gzipped size is `1472` bytes (auto-updated on Sun Aug 24 09:41:03 UTC 2014), after removal of development support such as console.log output. If that is too much for you, there is a bootstrap version that minifies and gzips down to `1109` bytes whilst compromising only on speed, not on functionality (invocations with the optional callback parameter are deferred and should work as soon as the full version has been loaded).
 However, there is a caveat in using the bootstrap version: None of the advanced functionality (using `''` or `0` as special flags in the URL list, omitting the hash value, etc.) is supported. To make use of them, you must remember to trigger deferring, e.g. by including both a hash and a callback parameter, and be it `{}`, to ensure that the bootstrap version defers the call for later, and you must also initiate loading of the full version for these calls to ever get executed.
 
 The minified scripts are not included to discourage production use:
@@ -196,7 +196,7 @@ loading the stylesheet, have been moved to `my.js`.
     <script>
       need(
         ['//myCDN-1.com/js/my.js', '//myCDN-2.com/js/my.js'],
-    '9588e534aa4cc782ce397845768df20d92e8de3c7252cd080a349bd98a5b3e16'// SHA256 of my.js
+    'bac323ae70ac658d7a02d751e03bf6278403c09a4a14dde5206824462efb8140'// SHA256 of my.js
       );
     </script>
   </head>
@@ -224,7 +224,7 @@ need(
         '//myCDN-1.com/js/need.min.js',
         '//myCDN-2.com/js/need.min.js'
     ],
-    'e57b781fdef0bd39d4d0051e1766ef9fd6dc4bc920cb66564e213d0d615991cb'// SHA256 of need.min.js
+    'fb5a1308fec2721d4910ee09428ec40e5f36ca9ce23c3ee477e07b9a7e8310bc'// SHA256 of need.min.js
 );
 
 // load stylesheet

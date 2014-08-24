@@ -165,6 +165,7 @@
 
 */
 
+/*global window */
 
 /**
  * window.needSHA256(binInput[, callback]) calculates the SHA256 hash
@@ -217,7 +218,7 @@
 The above copyright notice serves as a permissions notice also, and may optionally be included in copies or portions of the work.
 The work is provided “as is”, without warranty or support, express or implied. The author(s) are not liable for any damages, misuse, or other claim, whether from or as a consequence of usage of the given work.
 */
-needSHA256 = window.needSHA256 || (function(){
+window.needSHA256 = window.needSHA256 || (function(){
   // Eratosthenes seive to find primes up to 311 for magic constants. This is why SHA256 is better than SHA1
   var i=1,
       j,
@@ -247,8 +248,6 @@ needSHA256 = window.needSHA256 || (function(){
 
   function SHA256(b){
     var HASH = H.slice(i=0),
-//
-      c,
 //
 // unescape(..) is DEPRECATED, so the following line could cause
 // problems in the future, see
@@ -323,7 +322,7 @@ needSHA256 = window.needSHA256 || (function(){
 
 
 
-need = (function(callback, urls, hash) {
+window.need = (function(callback, urls, hash) {
     "use strict";
 
     if (callback.push) {

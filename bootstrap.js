@@ -12,7 +12,7 @@
  *
  */
 
-
+/*global window */
 
 // sha256 function from sha256.js
 // at https://github.com/jbt/js-crypto by James Taylor
@@ -21,7 +21,7 @@
 The above copyright notice serves as a permissions notice also, and may optionally be included in copies or portions of the work.
 The work is provided “as is”, without warranty or support, express or implied. The author(s) are not liable for any damages, misuse, or other claim, whether from or as a consequence of usage of the given work.
 */
-needSHA256 = (function(){
+window.needSHA256 = (function(){
   // Eratosthenes seive to find primes up to 311 for magic constants. This is why SHA256 is better than SHA1
   var i=1,
       j,
@@ -118,7 +118,7 @@ needSHA256 = (function(){
 
 
 
-need = function(urls, hash, extra) {
+window.need = function(urls, hash, extra) {
     "use strict";
 
     if (extra || !hash) {
