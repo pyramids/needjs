@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+        "mime"
 	"net/http"
 	"time"
 )
@@ -34,6 +35,8 @@ func (nh *NeverHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	flag.Parse()
+	//mime.AddExtensionType(".js", "application/javascript; charset=utf-8");
+	mime.AddExtensionType(".js", "text/javascript; charset=utf-8");
 	http.Handle("/error/404", http.NotFoundHandler())
 	http.Handle("/error/timeout", http.TimeoutHandler(&NeverHandler{}, timeout, "Timeout"))
 	//http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./"))))

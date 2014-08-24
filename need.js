@@ -275,23 +275,10 @@ needSHA256 = window.needSHA256 || (function(){
 // This is okay only if it is guaranteed that the input string does
 // not have any charCodes outside the range 0 to 0xFF inclusive.
 //
-//    for(;i<l;) m[i>>2] |= (s.charCodeAt(i) & 0xff) << 8*(3 - i++%4);
+// Current behavior should yield that (except that 0x80 to 0xFF get
+// sign-extended into 0xFF80 to 0xFFFF)
 //
-// better be safe than sorry:
-      for(;i<l;) {
-	  c=s.charCodeAt(i);
-	  if (c > 0xff) {
-	      // We must react to the unexpected extra information
-	      // present; otherwise, we'd allow malleability. Let's
-	      // not throw an exception for fear that such code may
-	      // slow down some javascript engines, but instead return
-	      // an invalid hash that hence comes fairly close to
-	      // signalling an exception
-	      return 'invalid';
-	  }
-	  m[i>>2] |= (c & 0xff) << 8*(3 - i++%4);
-      }
-//
+      for(;i<l;) m[i>>2] |= (s.charCodeAt(i) & 0xff) << 8*(3 - i++%4);
 
     l *= 8;
 
@@ -512,8 +499,74 @@ need = (function(callback, urls, hash) {
 	finish(actualHash);
     }
 
+    // take DOMString binStr with one character per UTF8 byte, and
+    // convert it into an actual UTF16 DOMString
+    function decodeUTF8() {
+	var i,j,l,c,buf,strbuf;
+
+	i=0;
+	l=binStr.length;
+	strbuf=[];
+	while (i<l) {
+	    j = Math.min(l, i + 1024);
+	    buf=[];
+	    while (i<j) {
+		// need to coerce input into byte-range
+		// (byte values appear sign-extended)
+		c = binStr.charCodeAt(i++) & 0xFF;
+		if (c < 0x80) {
+		    buf.push(c);
+		} else if (c < 0xE0) {
+		    // 0xD0 to 0xEF: 2 byte UTF8 representation of
+		    // codepoints up to 0x07FF
+		    buf.push(((c & 0x1F) << 6) |
+			     (binStr.charCodeAt(i++) & 0x3F )
+			    );
+		} else if (c < 0xF0) {
+		    // 0xE0 to 0xEF: 3 byte UTF8 representation of
+		    // codepoints up to 0xFFFF
+		    c = ((c & 0x0F) << 12) |
+			((binStr.charCodeAt(i++) & 0x3F ) << 6) |
+			(binStr.charCodeAt(i++) & 0x3F );
+		    buf.push(c);
+		} else if (c < 0xF8) {
+		    // 0xF0 to 0xF7: 4 byte UTF8
+		    // representation of codepoints up to
+		    // 0x1F,FFFF, requiring surrogate
+		    // codepoints in UTF16; assign c to codepoint minux 0x1,0000
+		    c = ((c & 0x07) << 18) |
+			((binStr.charCodeAt(i++) & 0x3F ) << 12) |
+			((binStr.charCodeAt(i++) & 0x3F ) << 6) |
+			(binStr.charCodeAt(i++) & 0x3F )
+			- 0x10000;
+		    // lead (high) surrogate
+		    buf.push(0xD800 + (c >>> 10));
+		    // trail (low) surrogate
+		    buf.push(0xDC00 + (c & 0x3FF));
+		} else {
+		    // 5 to 6 byte UTF8 representations of codepoints
+		    // that mostly do not(?!?) have UTF16 equivalents
+		    
+		    //throw new Error('unimplemented UTF8 codepoints used');
+		    
+		    // skip this character
+		    do {
+			c = binStr.charCodeAt(i++);
+		    } while ((c & 0xC0) == 0x80);
+		};
+	    };
+	    strbuf.push(String.fromCharCode.apply(null, buf));
+	};
+	binStr = strbuf.join('');
+    };
+    
     // check and evaluate javascript data in binStr (if and only if it has the correct SHA256 hash)
     function finish(actualHash) {
+	// any non-ASCII characters? if so, treat them as UTF8
+	if (/[^\x00-\x7F]/.test(binStr)) {
+	    decodeUTF8();
+	};
+
 	// locate DOM parent element for injecting the content;
 	// if not present (yet?), reschedule this task
 	//

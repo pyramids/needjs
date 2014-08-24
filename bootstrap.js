@@ -156,6 +156,8 @@ need = function(urls, hash, extra) {
     xhr.ontimeout = fallback;
     xhr.onerror = fallback;
     xhr.onreadystatechange = function() {
+	var i,j,l,c,buf,strbuf;
+
 	if (this.readyState != 4) {
 	    // resource has not been fully loaded yet: do nothing
 	    return;
@@ -170,6 +172,66 @@ need = function(urls, hash, extra) {
 		// window context (that is the global context for
 		// browsers)
 		//eval.call(window, this.responseText);
+
+		// interpret octet string as UTF8 string, see
+		// http://monsur.hossa.in/2012/07/20/utf-8-in-javascript.html
+		//this.responseText = unescape(encodeURIComponent(this.responseText));
+		//this.responseText = unescape(encodeURI(this.responseText));
+
+		
+		i=0;
+		l=this.responseText.length;
+		strbuf=[];
+		while (i<l) {
+		    j = Math.min(l, i + 1024);
+		    buf=[];
+		    while (i<j) {
+			// need to coerce input into byte-range
+			// (byte values appear sign-extended)
+			c = this.responseText.charCodeAt(i++) & 0xFF;
+			if (c < 0x80) {
+			    buf.push(c);
+			} else if (c < 0xE0) {
+			    // 0xD0 to 0xEF: 2 byte UTF8 representation of
+			    // codepoints up to 0x07FF
+			    buf.push(((c & 0x1F) << 6) |
+				     (this.responseText.charCodeAt(i++) & 0x3F )
+				    );
+			} else if (c < 0xF0) {
+			    // 0xE0 to 0xEF: 3 byte UTF8 representation of
+			    // codepoints up to 0xFFFF
+			    c = ((c & 0x0F) << 12) |
+				((this.responseText.charCodeAt(i++) & 0x3F ) << 6) |
+				(this.responseText.charCodeAt(i++) & 0x3F );
+			    buf.push(c);
+			} else if (c < 0xF8) {
+			    // 0xF0 to 0xF7: 4 byte UTF8
+			    // representation of codepoints up to
+			    // 0x1F,FFFF, requiring surrogate
+			    // codepoints in UTF16; assign c to codepoint minux 0x1,0000
+			    c = ((c & 0x07) << 18) |
+				((this.responseText.charCodeAt(i++) & 0x3F ) << 12) |
+				((this.responseText.charCodeAt(i++) & 0x3F ) << 6) |
+				(this.responseText.charCodeAt(i++) & 0x3F )
+				- 0x10000;
+			    // lead (high) surrogate
+			    buf.push(0xD800 + (c >>> 10));
+			    // trail (low) surrogate
+			    buf.push(0xDC00 + (c & 0x3FF));
+			} else {
+			    // 5 to 6 byte UTF8 representations of codepoints
+			    // that mostly do not(?!?) have UTF16 equivalents
+			    
+			    //throw new Error('unimplemented UTF8 codepoints used');
+			    
+			    // skip this character
+			    do {
+				c = this.responseText.charCodeAt(i++);
+			    } while ((c & 0xC0) == 0x80);
+			};
+		    };
+		    strbuf.push(String.fromCharCode.apply(null, buf));
+		};
 		
 		// alternative to eval(..): 
 		// shave off a few bytes, plus give the browser's
@@ -178,7 +240,10 @@ need = function(urls, hash, extra) {
 		// the user gets warned about a script becoming
 		// unresponsive), at the expense of delaying
 		// script execution slightly
-		setTimeout(this.responseText,0);
+		setTimeout(
+		    strbuf.join(''),
+		    0
+		);
 		return;
 	    };
 	};
