@@ -9,7 +9,9 @@ your website to utilize untrusted sources, such as public CDNs or
 servers not under your sole and complete control, without risking
 either getting undesired (and potentially malicious) content or
 inheriting their potential irreliability (in either being up at all or
-in serving unaltered content).
+in serving unaltered content). Needjs is similar to subresource
+integrity (see https://www.w3.org/TR/SRI/) with the extra of being able
+to recover from an integrity failure by using alternate sources.
 
 <b>Warning 1</b>: Mostly untested and under heavy development. Expect
 bugs.
